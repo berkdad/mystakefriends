@@ -7,7 +7,10 @@ import DraggableMember from './DraggableMember';
 export default function CircleCard({ circle, members, onUpdateName, onDelete, onSetCaptain, onEmail, onAddMembers }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(circle.name);
-  const { setNodeRef, isOver } = useDroppable({ id: circle.id });
+  const {isOver, setNodeRef} = useDroppable({
+    id: circle.id,
+    data: { type: 'circle' },   // <= add this
+  });
 
   const captain = members.find(m => m.id === circle.captainId);
   const regularMembers = members.filter(m => m.id !== circle.captainId);
@@ -19,10 +22,9 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
     setIsEditingName(false);
   };
 
-  const memberIds = members.map(m => m.id);
 
   return (
-    <div ref={setNodeRef} className={`bg-white rounded-lg shadow-md border overflow-hidden flex flex-col transition-all ${isOver ? 'border-rose-400 border-2 bg-rose-50 shadow-xl' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-lg shadow-md border overflow-hidden flex flex-col transition-all ${isOver ? 'border-rose-400 border-2 bg-rose-50 shadow-xl' : 'border-gray-200'}`}>
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-rose-50 to-amber-50 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
@@ -83,7 +85,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
       </div>
 
       {/* Drop zone for members */}
-      <div className="flex-1 p-4 min-h-24">
+      <div ref={setNodeRef} className="flex-1 p-4 min-h-24">
         {members.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
             <Users className="w-12 h-12 mb-2" />
@@ -94,18 +96,20 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
           <div className="space-y-2">
             {/* Captain (not inside SortableContext) */}
             {captain && (
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-semibold text-gray-600 uppercase">Captain</span>
-                </div>
-                <DraggableMember
-                  member={captain}
-                  isCaptain={true}
-                  onSetCaptain={() => onSetCaptain(null)}
-                />
-              </div>
-            )}
+               <div className="mb-4">
+                 <div className="flex items-center gap-2 mb-2">
+                   <Crown className="w-4 h-4 text-amber-500" />
+                   <span className="text-xs font-semibold text-gray-600 uppercase">Captain</span>
+                 </div>
+                 <DraggableMember
+                   key={captain.id}
+                   member={captain}
+                   parentCircleId={circle.id}
+                   isCaptain={true}
+                   onSetCaptain={() => onSetCaptain(null)}
+                 />
+               </div>
+             )}
 
             {/* Regular members (sortable list) */}
             {regularMembers.length > 0 && (
@@ -125,6 +129,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
                     <DraggableMember
                       key={member.id}
                       member={member}
+                      parentCircleId={circle.id}
                       isCaptain={false}
                       onSetCaptain={() => onSetCaptain(member.id)}
                     />

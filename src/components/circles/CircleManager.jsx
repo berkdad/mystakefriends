@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 //import type { CollisionDetection, Collision } from '@dnd-kit/core';
-import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin  } from '@dnd-kit/core';
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin, useDroppable  } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Target, Plus, Trash2, Edit2, Mail, User } from 'lucide-react';
 import CircleCard from './CircleCard';
@@ -10,7 +10,7 @@ import DraggableMember from './DraggableMember';
 import EmailCircleModal from './EmailCircleModal';
 import AddMembersModal from './AddMembersModal';
 
-function expandRect(rect, by = 40) {
+function expandRect(rect, by = 32) {
   return {
     top: rect.top - by,
     bottom: rect.bottom + by,
@@ -22,40 +22,72 @@ function expandRect(rect, by = 40) {
 }
 
 export const relaxedCollision = (args) => {
-  // 1) Prefer the target under the pointer (very forgiving)
-  const pointer = pointerWithin(args);
-  if (pointer.length) return pointer;
+  const {active, droppableContainers} = args;
 
-  // 2) Else, choose by overlap area with expanded droppable rects
-  const { active, droppableContainers } = args;
+  const getContainer = (id) =>
+    (droppableContainers || []).find((c) => c && c.id === id);
+
+  // 1) Pointer-first
+  const pointer = pointerWithin(args);
+  if (pointer.length) {
+    const hitId = pointer[0].id;
+    const hit = getContainer(hitId);
+    const type = hit?.data?.current?.type;
+
+    // If pointing directly at the available zone, return it
+    if (type === 'available') {
+      return pointer;
+    }
+
+    // If we're directly over a member card
+    if (type === 'member') {
+      const parentId = hit.data.current.circleId;
+      const dragSourceCircleId = active?.data?.current?.circleId;
+
+      // If dropping on a member in Available list AND we came from a circle,
+      // redirect to the Available zone
+      if (parentId === null && dragSourceCircleId !== null) {
+        return [{id: 'available'}];
+      }
+
+      // Otherwise, treat as hovering parent circle (existing behavior)
+      return parentId ? [{id: parentId}] : pointer;
+    }
+
+    // For circle drops
+    if (type === 'circle') {
+      return pointer;
+    }
+  }
+
+  // 2) Otherwise, overlap vs expanded rects (fallback for all valid drop zones)
   const activeRect =
     (active.rect.current && (active.rect.current.translated || active.rect.current)) || null;
   if (!activeRect) return [];
 
   const collisions = [];
-  // NOTE: iterate; don't call getEnabled()
   for (const droppable of droppableContainers || []) {
     if (!droppable || droppable.disabled) continue;
-    const rect = droppable.rect && droppable.rect.current;
+    const kind = droppable.data?.current?.type;
+
+    // Accept BOTH circles AND the available list as valid drop targets
+    if (kind !== 'circle' && kind !== 'available') continue;
+
+    const rect = droppable.rect?.current;
     if (!rect) continue;
 
-    const r = expandRect(rect, 32); // bump to 36 if you want it even “stickier”
-    const horizontalOverlap =
-      Math.max(0, Math.min(activeRect.right, r.right) - Math.max(activeRect.left, r.left));
-    const verticalOverlap =
-      Math.max(0, Math.min(activeRect.bottom, r.bottom) - Math.max(activeRect.top, r.top));
-    const area = horizontalOverlap * verticalOverlap;
+    const r = expandRect(rect, 32);
+    const hOverlap = Math.max(0, Math.min(activeRect.right, r.right) - Math.max(activeRect.left, r.left));
+    const vOverlap = Math.max(0, Math.min(activeRect.bottom, r.bottom) - Math.max(activeRect.top, r.top));
+    const area = hOverlap * vOverlap;
 
     if (area > 0) {
-      collisions.push({
-        id: droppable.id,
-        data: { droppableContainer: droppable },
-        score: area,
-      });
+      collisions.push({id: droppable.id, score: area});
     }
   }
 
   collisions.sort((a, b) => (b.score || 0) - (a.score || 0));
+
   return collisions;
 };
 
@@ -81,6 +113,11 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
   const [selectedCircle, setSelectedCircle] = useState(null);
   const [activeMember, setActiveMember] = useState(null);
+
+  const { setNodeRef: setAvailRef, isOver: isOverAvail } = useDroppable({
+    id: 'available',
+    data: { type: 'available' },
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -212,6 +249,8 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     return age;
   };
 
+
+
   const createCircle = async () => {
     try {
       const nextNumber = circles.length + 1;
@@ -299,100 +338,137 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     setActiveMember(member);
   };
 
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
+  const handleDragEnd = async ({ active, over }) => {
 
-    if (!over || active.id === over.id) return;
+    // NEW: If dropped on nothing and came from a circle, remove from circle
+    if (!over) {
+      const memberId = active.id.toString().replace('member-', '');
+      const fromCircleId = active?.data?.current?.circleId;
 
-    const memberId = active.id.replace('member-', '');
-    const member = allMembers.find(m => m.id === memberId);
+      // Only process if they came from a circle (not from Available)
+      if (fromCircleId) {
+        try {
+          const sourceCircle = circles.find(c => c.id === fromCircleId);
+          if (sourceCircle) {
+            const updatedMemberIds = (sourceCircle.memberIds || []).filter(id => id !== memberId);
+            const updatedCaptainId = sourceCircle.captainId === memberId ? null : sourceCircle.captainId;
 
-    if (!member) return;
+            await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', fromCircleId), {
+              memberIds: updatedMemberIds,
+              captainId: updatedCaptainId,
+            });
 
-    // Determine source and destination
-    let sourceCircleId = null;
-    let destinationId = over.id;
+            setCircles(prev =>
+              prev.map(c =>
+                c.id === fromCircleId
+                  ? { ...c, memberIds: updatedMemberIds, captainId: updatedCaptainId }
+                  : c
+              )
+            );
 
-    // Find source circle
-    for (const circle of circles) {
-      if ((circle.memberIds || []).includes(memberId)) {
-        sourceCircleId = circle.id;
-        break;
-      }
-    }
+            // Add back to available
+            const member = allMembers.find(m => m.id === memberId);
+            if (member) {
+              setAvailableMembers(prev =>
+                prev.some(m => m.id === memberId) ? prev : [...prev, member]
+              );
+            }
 
-    // If dropping on another member, find their container
-    if (over.id.startsWith('member-')) {
-      const overMemberId = over.id.replace('member-', '');
-
-      // Check if in available
-      if (availableMembers.some(m => m.id === overMemberId)) {
-        destinationId = 'available';
-      } else {
-        // Find which circle
-        for (const circle of circles) {
-          if ((circle.memberIds || []).includes(overMemberId)) {
-            destinationId = circle.id;
-            break;
+            setSuccess('Member removed from circle');
+            setActiveMember(null);
           }
+        } catch (err) {
+          console.error('Error removing member:', err);
+          setError('Failed to remove member');
         }
       }
-    }
-
-    // Don't do anything if source and destination are the same
-    if ((sourceCircleId === null && destinationId === 'available') ||
-        (sourceCircleId === destinationId)) {
       return;
     }
 
+    // 1) Identify WHICH member moved, from WHERE it came, and WHAT we dropped onto
+    const memberId = active.id.toString().replace('member-', '');
+
+    const fromCircleId =
+      active?.data?.current?.circleId != null ? active.data.current.circleId : null;
+    const draggedMember =
+      active?.data?.current?.member ??
+      allMembers.find(m => m.id === memberId) ??
+      { id: memberId };
+
+    const overType = over?.data?.current?.type ?? null;
+    const destinationId =
+      overType === 'circle'
+        ? over.id
+        : overType === 'available'
+        ? 'available'
+        : null;
+
+    if (!destinationId) return;
+
+    // 2) Ignore "no-op" moves (same list → same list)
+    const isSameCircle = fromCircleId && destinationId === fromCircleId;
+    const isAvailableToAvailable = !fromCircleId && destinationId === 'available';
+    if (isSameCircle || isAvailableToAvailable) return;
+
     try {
-      // Remove from source
-      if (sourceCircleId) {
-        const sourceCircle = circles.find(c => c.id === sourceCircleId);
-        const updatedMemberIds = (sourceCircle.memberIds || []).filter(id => id !== memberId);
-        const updatedCaptainId = sourceCircle.captainId === memberId ? null : sourceCircle.captainId;
+      // 3) REMOVE from source list
+      if (fromCircleId) {
+        const sourceCircle = circles.find(c => c.id === fromCircleId);
+        if (sourceCircle) {
+          const updatedMemberIds = (sourceCircle.memberIds || []).filter(id => id !== memberId);
+          const updatedCaptainId = sourceCircle.captainId === memberId ? null : sourceCircle.captainId;
 
-        await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', sourceCircleId), {
-          memberIds: updatedMemberIds,
-          captainId: updatedCaptainId
-        });
+          await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', fromCircleId), {
+            memberIds: updatedMemberIds,
+            captainId: updatedCaptainId,
+          });
 
-        setCircles(prev => prev.map(c =>
-          c.id === sourceCircleId
-            ? { ...c, memberIds: updatedMemberIds, captainId: updatedCaptainId }
-            : c
-        ));
-      }
-
-      // Add to destination
-      if (destinationId === 'available') {
-        setAvailableMembers(prev => [...prev, member]);
+          setCircles(prev =>
+            prev.map(c =>
+              c.id === fromCircleId
+                ? { ...c, memberIds: updatedMemberIds, captainId: updatedCaptainId }
+                : c
+            )
+          );
+        }
       } else {
-        const destCircle = circles.find(c => c.id === destinationId);
-        const updatedMemberIds = [...(destCircle.memberIds || []), memberId];
-
-        await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', destinationId), {
-          memberIds: updatedMemberIds
-        });
-
-        setCircles(prev => prev.map(c =>
-          c.id === destinationId
-            ? { ...c, memberIds: updatedMemberIds }
-            : c
-        ));
-
-        // Remove from available if it was there
         setAvailableMembers(prev => prev.filter(m => m.id !== memberId));
       }
 
+      // 4) ADD to destination list
+      if (destinationId === 'available') {
+        setAvailableMembers(prev =>
+          prev.some(m => m.id === memberId) ? prev : [...prev, draggedMember]
+        );
+      } else {
+        const destCircle = circles.find(c => c.id === destinationId);
+        if (destCircle) {
+          const updatedMemberIds = [...(destCircle.memberIds || []), memberId];
+
+          await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', destinationId), {
+            memberIds: updatedMemberIds,
+          });
+
+          setCircles(prev =>
+            prev.map(c =>
+              c.id === destinationId ? { ...c, memberIds: updatedMemberIds } : c
+            )
+          );
+
+          setAvailableMembers(prev => prev.filter(m => m.id !== memberId));
+        }
+      }
+
+      // 5) UX feedback
       setSuccess('Member moved successfully');
       setActiveMember(null);
     } catch (err) {
       console.error('Error moving member:', err);
       setError('Failed to move member');
-      loadData(); // Reload to restore correct state
+      loadData();
     }
   };
+
 
   const setCaptain = async (circleId, memberId) => {
     try {
@@ -423,6 +499,59 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         <div className="text-gray-500">Loading circles...</div>
       </div>
     );
+  }
+
+  // CircleManager.jsx — define this inside the component
+  function onDragEnd({ active, over }) {
+    if (!over) return; // dropped on nothing
+
+    const memberId = active.id;
+    const fromCircleId = active.data?.current?.circleId ?? null; // null => Available
+    const draggedMember = active.data?.current?.member ?? null;   // set in DraggableMember
+    const overType = over.data?.current?.type ?? null;            // 'circle' | 'available'
+    const toCircleId = overType === 'circle' ? over.id : null;
+
+    // No change (same list)
+    if ((fromCircleId && fromCircleId === toCircleId) ||
+        (!fromCircleId && overType === 'available')) {
+      return;
+    }
+
+    // Move across lists
+    setCircles(prev => {
+      // clone circles and their memberIds
+      const next = prev.map(c => ({ ...c, memberIds: [...(c.memberIds || [])] }));
+
+      const removeFrom = (cid) => {
+        const c = next.find(x => x.id === cid);
+        if (c) c.memberIds = c.memberIds.filter(id => id !== memberId);
+      };
+      const addTo = (cid) => {
+        const c = next.find(x => x.id === cid);
+        if (c && !c.memberIds.includes(memberId)) c.memberIds.push(memberId);
+      };
+
+      // FROM
+      if (fromCircleId) {
+        removeFrom(fromCircleId);
+      } else {
+        // from Available
+        setAvailableMembers(prevAvail => prevAvail.filter(m => m.id !== memberId));
+      }
+
+      // TO
+      if (overType === 'circle' && toCircleId) {
+        addTo(toCircleId);
+      } else if (overType === 'available') {
+        // back to Available (use full member object if we have it)
+        setAvailableMembers(prevAvail => {
+          if (prevAvail.some(m => m.id === memberId)) return prevAvail;
+          return [{ id: memberId, ...(draggedMember || {}) }, ...prevAvail];
+        });
+      }
+
+      return next;
+    });
   }
 
   function DraggableMemberOverlay({ member }) {
@@ -491,7 +620,12 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                 <MemberFilters filters={filters} onFilterChange={setFilters} />
               </div>
 
-              <div className="p-4 space-y-2">
+              <div
+                ref={setAvailRef}
+                className={`p-4 space-y-2 transition-all ${
+                  isOverAvail ? 'border-2 border-rose-400 bg-rose-50' : 'border border-transparent'
+                }`}
+              >
                 {filteredMembers.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">
                     {availableMembers.length === 0
@@ -503,11 +637,13 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                     <DraggableMember
                       key={member.id}
                       member={member}
+                      parentCircleId={null}   // <- Important: “Available” has no parent circle
                       showAge={true}
                     />
                   ))
                 )}
               </div>
+
             </div>
 
             {/* Right side - Circles */}

@@ -3,15 +3,28 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Crown, User, Mail, Phone, Baby, Heart } from 'lucide-react';
 
-export default function DraggableMember({ member, isCaptain = false, onSetCaptain, showAge = false }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: member.id });
+export default function DraggableMember({
+   member,
+   parentCircleId,              // <-- add this prop
+   isCaptain = false,
+   onSetCaptain,
+   showAge = false,
+ }) {
+   const {
+     attributes,
+     listeners,
+     setNodeRef,
+     transform,
+     transition,
+     isDragging,
+   } = useSortable({
+     id: `member-${member.id}`,  // Add the prefix here!
+     data: {
+       type: 'member',
+       circleId: parentCircleId,
+       member,
+     },
+   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
