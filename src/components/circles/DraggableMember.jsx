@@ -11,7 +11,7 @@ export default function DraggableMember({ member, isCaptain = false, onSetCaptai
     transform,
     transition,
     isDragging
-  } = useSortable({ id: `member-${member.id}` });
+  } = useSortable({ id: member.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -61,7 +61,7 @@ export default function DraggableMember({ member, isCaptain = false, onSetCaptai
         <div
           {...attributes}
           {...listeners}
-          className={`cursor-move pt-1 transition-colors ${
+          className={`cursor-grab active:cursor-grabbing pt-1 transition-colors ${
             isDragging ? 'text-rose-500' : 'text-gray-400 hover:text-gray-600'
           }`}
         >
@@ -96,11 +96,17 @@ export default function DraggableMember({ member, isCaptain = false, onSetCaptai
           {/* Bottom: Contact info and details */}
           <div className="space-y-0.5 pl-0">
             {member.email && (
-              <div className="flex items-start gap-1.5 text-xs text-gray-600">
+              <div className="flex items-start gap-1.5 text-xs text-gray-600 min-w-0">
                 <Mail className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                <span className="break-all">{member.email}</span>
+                <span
+                  className="truncate flex-1"   // = overflow-hidden + text-ellipsis + whitespace-nowrap
+                  title={member.email}
+                >
+                  {member.email}
+                </span>
               </div>
             )}
+
             {member.phone && (
               <div className="flex items-center gap-1.5 text-xs text-gray-600">
                 <Phone className="w-3 h-3 flex-shrink-0" />
@@ -130,14 +136,11 @@ export default function DraggableMember({ member, isCaptain = false, onSetCaptai
                 )}
               </div>
             )}
-
           </div>
         </div>
 
         {/* Right side: Captain crown button */}
         <div className="flex flex-col items-end gap-1">
-
-
           {/* Set/remove captain button */}
           {onSetCaptain && !isDragging && (
             <button

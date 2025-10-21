@@ -13,6 +13,18 @@ import QuickAddMemberModal from './components/member/QuickAddMemberModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
+const style = document.createElement('style');
+style.textContent = `
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+`;
+document.head.appendChild(style);
+
 
 // Firebase configuration
 const firebaseConfig = {

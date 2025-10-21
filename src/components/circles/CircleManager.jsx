@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
-import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+//import type { CollisionDetection, Collision } from '@dnd-kit/core';
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin  } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Target, Plus, Trash2, Edit2, Mail, User } from 'lucide-react';
 import CircleCard from './CircleCard';
@@ -8,6 +9,55 @@ import MemberFilters from './MemberFilters';
 import DraggableMember from './DraggableMember';
 import EmailCircleModal from './EmailCircleModal';
 import AddMembersModal from './AddMembersModal';
+
+function expandRect(rect, by = 40) {
+  return {
+    top: rect.top - by,
+    bottom: rect.bottom + by,
+    left: rect.left - by,
+    right: rect.right + by,
+    width: rect.width + by * 2,
+    height: rect.height + by * 2,
+  };
+}
+
+export const relaxedCollision = (args) => {
+  // 1) Prefer the target under the pointer (very forgiving)
+  const pointer = pointerWithin(args);
+  if (pointer.length) return pointer;
+
+  // 2) Else, choose by overlap area with expanded droppable rects
+  const { active, droppableContainers } = args;
+  const activeRect =
+    (active.rect.current && (active.rect.current.translated || active.rect.current)) || null;
+  if (!activeRect) return [];
+
+  const collisions = [];
+  // NOTE: iterate; don't call getEnabled()
+  for (const droppable of droppableContainers || []) {
+    if (!droppable || droppable.disabled) continue;
+    const rect = droppable.rect && droppable.rect.current;
+    if (!rect) continue;
+
+    const r = expandRect(rect, 32); // bump to 36 if you want it even “stickier”
+    const horizontalOverlap =
+      Math.max(0, Math.min(activeRect.right, r.right) - Math.max(activeRect.left, r.left));
+    const verticalOverlap =
+      Math.max(0, Math.min(activeRect.bottom, r.bottom) - Math.max(activeRect.top, r.top));
+    const area = horizontalOverlap * verticalOverlap;
+
+    if (area > 0) {
+      collisions.push({
+        id: droppable.id,
+        data: { droppableContainer: droppable },
+        score: area,
+      });
+    }
+  }
+
+  collisions.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return collisions;
+};
 
 export default function CircleManager({ db, stakeId, wardId, wardName }) {
   const [circles, setCircles] = useState([]);
@@ -414,7 +464,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
 
      <DndContext
        sensors={sensors}
-       collisionDetection={closestCenter}
+       collisionDetection={relaxedCollision}
        onDragEnd={handleDragEnd}
        onDragStart={handleDragStart}
      >
