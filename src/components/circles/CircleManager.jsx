@@ -91,6 +91,29 @@ export const relaxedCollision = (args) => {
   return collisions;
 };
 
+const calculateAge = (dob) => {
+  if (!dob) return null;
+
+  // Parse MM/DD/YYYY format
+  let birthDate;
+  if (dob.includes('/')) {
+    const [month, day, year] = dob.split('/');
+    birthDate = new Date(year, month - 1, day);
+  } else if (dob.includes('-')) {
+    birthDate = new Date(dob);
+  } else {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
 export default function CircleManager({ db, stakeId, wardId, wardName }) {
   const [circles, setCircles] = useState([]);
   const [allMembers, setAllMembers] = useState([]);
@@ -555,8 +578,11 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   }
 
   function DraggableMemberOverlay({ member }) {
+    const age = calculateAge(member.dob);
     return (
-      <div className="bg-white border-2 border-rose-400 rounded-lg p-3 shadow-2xl opacity-90">
+      <div className={`border-2 border-rose-400 rounded-lg p-3 shadow-2xl opacity-90 ${
+        age !== null && age <= 17 ? 'bg-yellow-50' : 'bg-white'
+      }`}>
         <div className="flex items-center gap-2">
           {member.profilePicUrl ? (
             <img

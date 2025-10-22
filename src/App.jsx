@@ -44,6 +44,30 @@ const storage = getStorage(app);
 const functions = getFunctions(app);
 
 
+// Helper function to calculate age
+const calculateAge = (dob) => {
+  if (!dob) return null;
+
+  // Parse MM/DD/YYYY format
+  let birthDate;
+  if (dob.includes('/')) {
+    const [month, day, year] = dob.split('/');
+    birthDate = new Date(year, month - 1, day);
+  } else if (dob.includes('-')) {
+    birthDate = new Date(dob);
+  } else {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
 // Main App Component
 export default function App() {
   const [user, setUser] = useState(null);
@@ -1796,6 +1820,7 @@ function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDele
 // Member Card Component
 function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }) {
   const [inviting, setInviting] = useState(false);
+  const age = calculateAge(member.dob);
 
   const handleInvite = async () => {
     setInviting(true);
@@ -1810,6 +1835,8 @@ function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }
     <div className={`border rounded-lg p-4 transition-all ${
       inviting
         ? 'border-gray-300 bg-gray-50'
+        : age !== null && age <= 17
+        ? 'bg-yellow-50 border-yellow-300 hover:shadow-md'
         : 'border-gray-200 hover:shadow-md'
     }`}>
       {inviting ? (

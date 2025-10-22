@@ -184,6 +184,29 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
   const handleLogout = async () => {
     await signOut(auth);
   };
+  const calculateAge = (dob) => {
+    if (!dob) return null;
+
+    // Parse MM/DD/YYYY format
+    let birthDate;
+    if (dob.includes('/')) {
+      const [month, day, year] = dob.split('/');
+      birthDate = new Date(year, month - 1, day);
+    } else if (dob.includes('-')) {
+      birthDate = new Date(dob);
+    } else {
+      return null;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
 
   if (loading) {
     return (
@@ -418,15 +441,19 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
           <div className="bg-white rounded-xl shadow-md border border-rose-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Circle Members</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {circleMembers.map(member => (
-                <button
-                  key={member.id}
-                  onClick={() => {
-                    setSelectedMember(member);
-                    setShowProfileModal(true);
-                  }}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all text-left hover:border-rose-300"
-                >
+              {circleMembers.map(member => {
+                const age = calculateAge(member.dob);
+                return (
+                  <button
+                    key={member.id}
+                    onClick={() => {
+                      setSelectedMember(member);
+                      setShowProfileModal(true);
+                    }}
+                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left hover:border-rose-300 ${
+                      age !== null && age <= 17 ? 'bg-yellow-50 border-yellow-300' : 'border-gray-200'
+                    }`}
+                  >
                   <div className="flex items-center gap-3 mb-3">
                     {member.profilePicUrl ? (
                       <img
@@ -450,7 +477,8 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                     {member.aboutMe || 'Click to view profile'}
                   </p>
                 </button>
-              ))}
+              );
+            })}
             </div>
           </div>
         )}

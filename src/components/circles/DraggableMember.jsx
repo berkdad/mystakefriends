@@ -1,13 +1,14 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Crown, User, Mail, Phone, Baby, Heart } from 'lucide-react';
+import { GripVertical, Crown, User, Mail, Phone, Baby, Heart, Send } from 'lucide-react';
 
 export default function DraggableMember({
    member,
-   parentCircleId,              // <-- add this prop
+   parentCircleId,
    isCaptain = false,
    onSetCaptain,
+   onResendInvite,
    showAge = false,
  }) {
    const {
@@ -18,7 +19,7 @@ export default function DraggableMember({
      transition,
      isDragging,
    } = useSortable({
-     id: `member-${member.id}`,  // Add the prefix here!
+     id: `member-${member.id}`,
      data: {
        type: 'member',
        circleId: parentCircleId,
@@ -56,12 +57,15 @@ export default function DraggableMember({
   };
 
   const age = calculateAge(member.dob);
+  const hasNotLoggedIn = !member.hasLoggedIn;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border rounded-lg p-3 shadow-sm transition-all ${
+      className={`border rounded-lg p-3 shadow-sm transition-all ${
+        age !== null && age <= 17 ? 'bg-yellow-50' : 'bg-white'
+      } ${
         isDragging
           ? 'shadow-2xl scale-105 rotate-3 border-rose-400 bg-rose-50 z-50'
           : 'hover:shadow-md'
@@ -112,7 +116,7 @@ export default function DraggableMember({
               <div className="flex items-start gap-1.5 text-xs text-gray-600 min-w-0">
                 <Mail className="w-3 h-3 mt-0.5 flex-shrink-0" />
                 <span
-                  className="truncate flex-1"   // = overflow-hidden + text-ellipsis + whitespace-nowrap
+                  className="truncate flex-1"
                   title={member.email}
                 >
                   {member.email}
@@ -152,8 +156,19 @@ export default function DraggableMember({
           </div>
         </div>
 
-        {/* Right side: Captain crown button */}
+        {/* Right side: Action buttons */}
         <div className="flex flex-col items-end gap-1">
+          {/* Resend invite button - only show if member hasn't logged in */}
+          {onResendInvite && hasNotLoggedIn && !isDragging && (
+            <button
+              onClick={onResendInvite}
+              className="p-1.5 rounded transition-colors text-purple-500 hover:text-purple-700 hover:bg-purple-50"
+              title="Resend invite email"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          )}
+
           {/* Set/remove captain button */}
           {onSetCaptain && !isDragging && (
             <button

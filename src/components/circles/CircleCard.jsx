@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Edit2, Trash2, Mail, Crown, Users, Plus } from 'lucide-react';
+import { Edit2, Trash2, Mail, Crown, Users, Plus, MoreVertical, Send } from 'lucide-react';
 import DraggableMember from './DraggableMember';
 
-export default function CircleCard({ circle, members, onUpdateName, onDelete, onSetCaptain, onEmail, onAddMembers }) {
+export default function CircleCard({ circle, members, onUpdateName, onDelete, onSetCaptain, onEmail, onAddMembers, onInviteToApp }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(circle.name);
+  const [showMenu, setShowMenu] = useState(false);
   const {isOver, setNodeRef} = useDroppable({
     id: circle.id,
-    data: { type: 'circle' },   // <= add this
+    data: { type: 'circle' },
   });
 
   const captain = members.find(m => m.id === circle.captainId);
@@ -22,6 +23,60 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
     setIsEditingName(false);
   };
 
+  const menuItems = [
+    {
+      icon: Plus,
+      label: 'Add Members',
+      onClick: () => {
+        setShowMenu(false);
+        onAddMembers();
+      },
+      color: 'text-green-600',
+      hoverColor: 'hover:bg-green-50'
+    },
+    {
+      icon: Edit2,
+      label: 'Rename Circle',
+      onClick: () => {
+        setShowMenu(false);
+        setIsEditingName(true);
+      },
+      color: 'text-gray-600',
+      hoverColor: 'hover:bg-gray-50'
+    },
+    {
+      icon: Mail,
+      label: 'Email Circle',
+      onClick: () => {
+        setShowMenu(false);
+        onEmail();
+      },
+      color: 'text-blue-600',
+      hoverColor: 'hover:bg-blue-50',
+      disabled: members.length === 0
+    },
+    {
+      icon: Send,
+      label: 'Invite to App',
+      onClick: () => {
+        setShowMenu(false);
+        onInviteToApp();
+      },
+      color: 'text-purple-600',
+      hoverColor: 'hover:bg-purple-50',
+      disabled: members.length === 0
+    },
+    {
+      icon: Trash2,
+      label: 'Delete Circle',
+      onClick: () => {
+        setShowMenu(false);
+        onDelete();
+      },
+      color: 'text-red-600',
+      hoverColor: 'hover:bg-red-50'
+    }
+  ];
 
   return (
     <div className={`bg-white rounded-lg shadow-md border overflow-hidden flex flex-col transition-all ${isOver ? 'border-rose-400 border-2 bg-rose-50 shadow-xl' : 'border-gray-200'}`}>
@@ -45,36 +100,44 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
             </h3>
           )}
 
-          <div className="flex items-center gap-1">
+          <div className="relative">
             <button
-              onClick={onAddMembers}
-              className="p-1.5 text-green-600 hover:bg-white rounded transition-colors"
-              title="Add members"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setIsEditingName(!isEditingName)}
+              onClick={() => setShowMenu(!showMenu)}
               className="p-1.5 text-gray-600 hover:bg-white rounded transition-colors"
-              title="Rename circle"
+              title="Circle options"
             >
-              <Edit2 className="w-4 h-4" />
+              <MoreVertical className="w-5 h-5" />
             </button>
-            <button
-              onClick={onEmail}
-              className="p-1.5 text-blue-600 hover:bg-white rounded transition-colors"
-              title="Email circle members"
-              disabled={members.length === 0}
-            >
-              <Mail className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-1.5 text-red-600 hover:bg-white rounded transition-colors"
-              title="Delete circle"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+
+            {/* Dropdown Menu */}
+            {showMenu && (
+              <>
+                {/* Backdrop to close menu */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                
+                {/* Menu */}
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-20">
+                  {menuItems.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={item.onClick}
+                      disabled={item.disabled}
+                      className={`w-full px-4 py-2 text-left flex items-center gap-3 transition-colors ${
+                        item.disabled 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : `${item.color} ${item.hoverColor}`
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -90,7 +153,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
             <Users className="w-12 h-12 mb-2" />
             <p className="text-sm">Drag members here</p>
-            <p className="text-xs mt-1">or click + to add</p>
+            <p className="text-xs mt-1">or use menu to add</p>
           </div>
         ) : (
           <div className="space-y-2">
