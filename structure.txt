@@ -1,0 +1,26 @@
+src/
+    App.jsx
+    index.js
+    components/
+        EmailAdminsModal.jsx
+        MemberCard.jsx
+        MemberModal.jsx
+        PrivacyPolicy.jsx
+        TestReportsModal.jsx
+        circles/
+            AddMembersModal.jsx
+            CircleCard.jsx
+            CircleManager.jsx
+            ConfirmLiveModeModal.jsx
+            DraggableMember.jsx
+            EmailCircleModal.jsx
+            InviteToAppModal.jsx
+            MemberFilters.jsx
+        member/
+            CircleChatView.jsx
+            CircleEventsView.jsx
+            EditMyProfileModal.jsx
+            MemberDashboard.jsx
+            MemberProfileModal.jsx
+            QuickAddMemberModal.jsx
+            TransferMemberModal.jsx

@@ -4,10 +4,11 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true,
     "target": "es2017",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUnusedParameters": false
   },
   "compileOnSave": true,
   "include": [

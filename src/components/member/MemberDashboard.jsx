@@ -147,7 +147,15 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
         collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members')
       );
       const allMembersSnapshot = await getDocs(allMembersQuery);
-      const allMembers = allMembersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const allMembers = allMembersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        delete data.id;
+        return {
+          ...data,
+          id: doc.id,
+          wardId: userData.wardId
+        };
+      });
 
       const circleMembersList = allMembers.filter(m =>
         (myCircle.memberIds || []).includes(m.id)

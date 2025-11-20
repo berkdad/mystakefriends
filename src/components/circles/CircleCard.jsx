@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Edit2, Trash2, Mail, Crown, Users, Plus, MoreVertical, Send } from 'lucide-react';
+import { Edit2, Trash2, Mail, Crown, Users, Plus, MoreVertical, Send, PlayCircle, PauseCircle } from 'lucide-react';
 import DraggableMember from './DraggableMember';
 
-export default function CircleCard({ circle, members, onUpdateName, onDelete, onSetCaptain, onEmail, onAddMembers, onInviteToApp }) {
+export default function CircleCard({ circle, members, onUpdateName, onDelete, onSetCaptain, onEmail, onAddMembers, onInviteToApp, onToggleMode, onResendInvite }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(circle.name);
   const [showMenu, setShowMenu] = useState(false);
@@ -78,10 +78,27 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
     }
   ];
 
+  const isEditMode = circle.mode === 'edit';
+  const isLiveMode = circle.mode === 'live';
+
   return (
-    <div className={`bg-white rounded-lg shadow-md border overflow-hidden flex flex-col transition-all ${isOver ? 'border-rose-400 border-2 bg-rose-50 shadow-xl' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-lg shadow-md border-2 overflow-hidden flex flex-col transition-all ${
+      isOver
+        ? 'border-rose-400 bg-rose-50 shadow-xl'
+        : isEditMode
+        ? 'border-yellow-400'
+        : isLiveMode
+        ? 'border-green-500'
+        : 'border-gray-200'
+    }`}>
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-rose-50 to-amber-50 border-b border-gray-200 flex-shrink-0">
+      <div className={`p-4 border-b border-gray-200 flex-shrink-0 ${
+        isEditMode
+          ? 'bg-gradient-to-r from-yellow-100 to-yellow-200'
+          : isLiveMode
+          ? 'bg-gradient-to-r from-green-100 to-green-200'
+          : 'bg-gradient-to-r from-rose-50 to-amber-50'
+      }`}>
         <div className="flex items-center justify-between mb-2">
           {isEditingName ? (
             <input
@@ -100,6 +117,33 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
             </h3>
           )}
 
+          {/* Mode Toggle Button */}
+          <button
+            onClick={onToggleMode}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
+              isEditMode
+                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                : isLiveMode
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-400 text-white hover:bg-gray-500'
+            }`}
+            title={isEditMode ? "Click to go Live and send notifications" : "Click to Edit mode"}
+          >
+            {isEditMode ? (
+              <>
+                <PauseCircle className="w-4 h-4" />
+                <span>Edit Mode</span>
+              </>
+            ) : isLiveMode ? (
+              <>
+                <PlayCircle className="w-4 h-4" />
+                <span>Live</span>
+              </>
+            ) : (
+              <span>Unknown</span>
+            )}
+          </button>
+
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
@@ -117,7 +161,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
                   className="fixed inset-0 z-10"
                   onClick={() => setShowMenu(false)}
                 />
-                
+
                 {/* Menu */}
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-20">
                   {menuItems.map((item, index) => (
@@ -126,8 +170,8 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
                       onClick={item.onClick}
                       disabled={item.disabled}
                       className={`w-full px-4 py-2 text-left flex items-center gap-3 transition-colors ${
-                        item.disabled 
-                          ? 'opacity-50 cursor-not-allowed' 
+                        item.disabled
+                          ? 'opacity-50 cursor-not-allowed'
                           : `${item.color} ${item.hoverColor}`
                       }`}
                     >
@@ -170,6 +214,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
                    parentCircleId={circle.id}
                    isCaptain={true}
                    onSetCaptain={() => onSetCaptain(null)}
+                   onResendInvite={() => onResendInvite(captain.id)}
                  />
                </div>
              )}
@@ -195,6 +240,7 @@ export default function CircleCard({ circle, members, onUpdateName, onDelete, on
                       parentCircleId={circle.id}
                       isCaptain={false}
                       onSetCaptain={() => onSetCaptain(member.id)}
+                      onResendInvite={() => onResendInvite(member.id)}
                     />
                   ))}
                 </SortableContext>

@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Shield } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
-export default function EmailCircleModal({ circle, members, stakeId, wardId, onClose }) {
+export default function EmailAdminsModal({ stakeId, stakeName, onClose }) {
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
   const [formData, setFormData] = useState({
     from: currentUser?.email || '',
-    subject: `Message from ${circle.name}`,
+    subject: `Message from ${stakeName} Leadership`,
     message: ''
   });
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState('');
-
-  const membersWithEmail = members.filter(m => m.email && m.email.trim() !== '');
 
   const handleSend = async () => {
     if (!formData.message.trim()) {
@@ -23,27 +21,19 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
       return;
     }
 
-    if (membersWithEmail.length === 0) {
-      setStatus('No members in this circle have email addresses');
-      return;
-    }
-
     setSending(true);
-    setStatus('Sending email...');
+    setStatus('Sending email to all admins...');
 
     try {
       const functions = getFunctions();
-      const emailCircle = httpsCallable(functions, 'emailCircle');
+      const emailAllAdmins = httpsCallable(functions, 'emailAllAdmins');
 
-      const result = await emailCircle({
-        circleId: circle.id,
-        circleName: circle.name,
+      const result = await emailAllAdmins({
+        stakeId,
+        stakeName,
         from: formData.from,
         subject: formData.subject,
-        message: formData.message,
-        memberIds: membersWithEmail.map(m => m.id),
-        stakeId,
-        wardId
+        message: formData.message
       });
 
       if (result.data.success) {
@@ -67,7 +57,10 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Email Circle Members</h2>
+          <div className="flex items-center gap-3">
+            <Shield className="w-6 h-6 text-rose-600" />
+            <h2 className="text-xl font-bold text-gray-800">Email All Stake & Ward Admins</h2>
+          </div>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -78,35 +71,12 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {/* To field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              To: {circle.name}
-            </label>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <div className="flex flex-wrap gap-2">
-                {membersWithEmail.length === 0 ? (
-                  <span className="text-sm text-gray-500 italic">
-                    No members with email addresses
-                  </span>
-                ) : (
-                  membersWithEmail.map((member) => (
-                    <span
-                      key={member.id}
-                      className="inline-flex items-center px-2 py-1 bg-rose-100 text-rose-700 text-sm rounded"
-                    >
-                      {member.fullName}
-                      <span className="ml-1 text-xs text-rose-500">({member.email})</span>
-                    </span>
-                  ))
-                )}
-              </div>
-              {members.length !== membersWithEmail.length && (
-                <p className="text-xs text-amber-600 mt-2">
-                  Note: {members.length - membersWithEmail.length} member(s) without email will not receive this message
-                </p>
-              )}
-            </div>
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
+            <h3 className="font-semibold text-rose-900 mb-2">Who will receive this email:</h3>
+            <ul className="text-sm text-rose-800 space-y-1 list-disc list-inside">
+              <li>All Stake Admins</li>
+              <li>All Ward Admins from every ward in the stake</li>
+            </ul>
           </div>
 
           {/* Subject field */}
@@ -130,9 +100,9 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
             <textarea
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              rows={8}
+              rows={10}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-              placeholder="Type your message here..."
+              placeholder="Type your message to all stake and ward admins here..."
             />
           </div>
 
@@ -160,11 +130,11 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
           </button>
           <button
             onClick={handleSend}
-            disabled={sending || membersWithEmail.length === 0}
+            disabled={sending}
             className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
-            {sending ? 'Sending...' : 'Send Email'}
+            {sending ? 'Sending...' : 'Send to All Admins'}
           </button>
         </div>
       </div>

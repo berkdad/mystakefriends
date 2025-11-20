@@ -109,16 +109,6 @@ export default function MemberProfileModal({ member, onClose }) {
                 </div>
               )}
 
-              {member.maritalStatus && (
-                <div className="flex items-start gap-3">
-                  <Heart className="w-5 h-5 text-rose-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-600">Marital Status</p>
-                    <p className="text-gray-800 capitalize">{member.maritalStatus}</p>
-                  </div>
-                </div>
-              )}
-
               {member.anniversary && (
                 <div className="flex items-start gap-3">
                   <Heart className="w-5 h-5 text-rose-500 mt-0.5 fill-current" />
@@ -151,21 +141,6 @@ export default function MemberProfileModal({ member, onClose }) {
                     <div>
                       <p className="text-sm text-gray-600">Spouse</p>
                       <p className="text-gray-800">{member.spouseName}</p>
-                    </div>
-                  </div>
-                )}
-
-                {member.numChildren && parseInt(member.numChildren) > 0 && (
-                  <div className="flex items-start gap-3">
-                    <Baby className="w-5 h-5 text-rose-500 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-600">Children</p>
-                      <p className="text-gray-800">
-                        {member.numChildren} {parseInt(member.numChildren) === 1 ? 'child' : 'children'}
-                      </p>
-                      {member.childrenNames && (
-                        <p className="text-sm text-gray-600 mt-1">{member.childrenNames}</p>
-                      )}
                     </div>
                   </div>
                 )}

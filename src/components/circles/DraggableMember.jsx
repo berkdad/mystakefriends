@@ -64,7 +64,7 @@ export default function DraggableMember({
       ref={setNodeRef}
       style={style}
       className={`border rounded-lg p-3 shadow-sm transition-all ${
-        age !== null && age <= 17 ? 'bg-yellow-50' : 'bg-white'
+        age !== null && age <= 17 ? 'bg-purple-50' : 'bg-white'
       } ${
         isDragging
           ? 'shadow-2xl scale-105 rotate-3 border-rose-400 bg-rose-50 z-50'
@@ -128,22 +128,6 @@ export default function DraggableMember({
               <div className="flex items-center gap-1.5 text-xs text-gray-600">
                 <Phone className="w-3 h-3 flex-shrink-0" />
                 <span>{member.phone}</span>
-                <div className="flex items-center gap-1 ml-2">
-                  {member.maritalStatus === 'married' && (
-                    <Heart className="w-3 h-3 text-rose-500 fill-current" title="Married" />
-                  )}
-                  {member.maritalStatus === 'widowed' && (
-                    <Heart className="w-3 h-3 text-gray-400" title="Widowed" />
-                  )}
-                  {member.maritalStatus === 'divorced' && (
-                    <Heart className="w-3 h-3 text-gray-400" title="Divorced" style={{ opacity: 0.5 }} />
-                  )}
-                  {member.numChildren && parseInt(member.numChildren) > 0 && (
-                    <span className="flex items-center gap-0.5 text-rose-500" title={`${member.numChildren} ${parseInt(member.numChildren) === 1 ? 'child' : 'children'}`}>
-                      <Baby className="w-3 h-3" />
-                    </span>
-                  )}
-                </div>
               </div>
             )}
             {showAge && (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, writeBatch, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { doc, writeBatch, collection, query, where, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { X, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function TransferMemberModal({ member, currentWard, wards, stakeId, db, onClose, onComplete }) {
@@ -24,7 +24,7 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
       const batch = writeBatch(db);
 
       // 1. Create member in new ward
-      const newMemberRef = doc(collection(db, 'stakes', stakeId, 'wards', targetWardId, 'members'));
+      const newMemberRef = doc(db, 'stakes', stakeId, 'wards', targetWardId, 'members', member.id);
       batch.set(newMemberRef, {
         ...member,
         updatedAt: new Date().toISOString(),
@@ -47,10 +47,10 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
           const updatedMemberIds = circleData.memberIds.filter(id => id !== member.id);
           const updatedCaptainId = circleData.captainId === member.id ? null : circleData.captainId;
 
-          await doc(db, 'stakes', stakeId, 'wards', currentWard.id, 'circles', circleDoc.id).set({
+          await updateDoc(doc(db, 'stakes', stakeId, 'wards', currentWard.id, 'circles', circleDoc.id), {
             memberIds: updatedMemberIds,
             captainId: updatedCaptainId
-          }, { merge: true });
+          });
         }
       }
 
@@ -64,11 +64,11 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
 
         if (!usersSnapshot.empty) {
           const userDoc = usersSnapshot.docs[0];
-          await doc(db, 'users', userDoc.id).set({
+          await updateDoc(doc(db, 'users', userDoc.id), {
             wardId: targetWardId,
             memberWardId: targetWardId,
             updatedAt: new Date().toISOString()
-          }, { merge: true });
+          });
         }
       }
 

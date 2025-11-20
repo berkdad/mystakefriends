@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 //import type { CollisionDetection, Collision } from '@dnd-kit/core';
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin, useDroppable  } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -9,6 +10,8 @@ import MemberFilters from './MemberFilters';
 import DraggableMember from './DraggableMember';
 import EmailCircleModal from './EmailCircleModal';
 import AddMembersModal from './AddMembersModal';
+import InviteToAppModal from './InviteToAppModal';
+import ConfirmLiveModeModal from './ConfirmLiveModeModal';
 
 function expandRect(rect, by = 32) {
   return {
@@ -134,6 +137,9 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   });
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+  const [showInviteToAppModal, setShowInviteToAppModal] = useState(false);
+  const [showConfirmLiveModal, setShowConfirmLiveModal] = useState(false);
+  const [circleToToggle, setCircleToToggle] = useState(null);
   const [selectedCircle, setSelectedCircle] = useState(null);
   const [activeMember, setActiveMember] = useState(null);
 
@@ -166,10 +172,15 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       // Load members
       const membersQuery = query(collection(db, 'stakes', stakeId, 'wards', wardId, 'members'));
       const membersSnapshot = await getDocs(membersQuery);
-      const membersData = membersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const membersData = membersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        delete data.id;  // Remove the stale id field
+        return {
+          ...data,
+          id: doc.id,      // Now this won't get overwritten
+          wardId: wardId  // Force correct wardId (remove wardName line)
+        };
+      });
       setAllMembers(membersData);
 
       // Load circles
@@ -281,6 +292,8 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         name: `Circle ${nextNumber}`,
         captainId: null,
         memberIds: [],
+        mode: 'edit',  // Start in edit mode
+        lastSnapshot: null,  // No previous snapshot
         stakeId,
         wardId,
         createdAt: serverTimestamp()
@@ -510,6 +523,90 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     }
   };
 
+  const toggleMode = (circleId) => {
+    const circle = circles.find(c => c.id === circleId);
+    if (!circle) return;
+
+    const currentMode = circle.mode || 'edit';
+
+    if (currentMode === 'edit') {
+      // Going from Edit to Live - show confirmation modal
+      setCircleToToggle(circle);
+      setShowConfirmLiveModal(true);
+    } else {
+      // Going from Live to Edit - no confirmation needed
+      confirmToggleMode(circleId);
+    }
+  };
+
+  const confirmToggleMode = async (circleId) => {
+    try {
+      const circle = circles.find(c => c.id === circleId);
+      if (!circle) return;
+
+      const currentMode = circle.mode || 'edit';
+      const newMode = currentMode === 'edit' ? 'live' : 'edit';
+
+      // When switching to Edit mode, save current state as snapshot
+      // When switching to Live mode, the cloud function will handle notifications
+      const updates = {
+        mode: newMode,
+      };
+
+      // If switching to Edit mode, save current state as lastSnapshot
+      if (newMode === 'edit') {
+        updates.lastSnapshot = {
+          memberIds: circle.memberIds || [],
+          captainId: circle.captainId || null,
+          timestamp: serverTimestamp()
+        };
+      }
+
+      await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', circleId), updates);
+
+      setCircles(prev => prev.map(c =>
+        c.id === circleId ? { ...c, ...updates } : c
+      ));
+
+      setSuccess(`Circle switched to ${newMode === 'live' ? 'Live' : 'Edit'} mode`);
+
+      // Close modal if it was open
+      setShowConfirmLiveModal(false);
+      setCircleToToggle(null);
+    } catch (err) {
+      console.error('Error toggling mode:', err);
+      setError('Failed to toggle mode');
+    }
+  };
+
+  const resendInvite = async (memberId) => {
+    try {
+      const member = allMembers.find(m => m.id === memberId);
+      if (!member || !member.email) {
+        setError('Member not found or has no email');
+        return;
+      }
+
+      const functions = getFunctions();
+      const inviteMember = httpsCallable(functions, 'inviteMember');
+
+      await inviteMember({
+        email: member.email,
+        memberName: member.fullName,
+        memberId: member.id,
+        stakeId,
+        wardId,
+        stakeName: wardName,
+        wardName: wardName
+      });
+
+      setSuccess(`Invitation resent to ${member.fullName}`);
+    } catch (err) {
+      console.error('Error resending invite:', err);
+      setError('Failed to resend invitation');
+    }
+  };
+
   // Generate all draggable IDs
   const allMemberIds = [
     ...filteredMembers.map(m => `member-${m.id}`),
@@ -581,7 +678,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     const age = calculateAge(member.dob);
     return (
       <div className={`border-2 border-rose-400 rounded-lg p-3 shadow-2xl opacity-90 ${
-        age !== null && age <= 17 ? 'bg-yellow-50' : 'bg-white'
+        age !== null && age <= 17 ? 'bg-purple-50' : 'bg-white'
       }`}>
         <div className="flex items-center gap-2">
           {member.profilePicUrl ? (
@@ -712,6 +809,8 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       onUpdateName={(newName) => updateCircleName(circle.id, newName)}
                       onDelete={() => deleteCircle(circle.id)}
                       onSetCaptain={(memberId) => setCaptain(circle.id, memberId)}
+                      onToggleMode={() => toggleMode(circle.id)}
+                      onResendInvite={resendInvite}
                       onEmail={() => {
                         setSelectedCircle(circle);
                         setShowEmailModal(true);
@@ -719,6 +818,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       onAddMembers={() => {
                         setSelectedCircle(circle);
                         setShowAddMembersModal(true);
+                      }}
+                      onInviteToApp={() => {
+                        setSelectedCircle(circle);
+                        setShowInviteToAppModal(true);
                       }}
                     />
                   ))}
@@ -736,6 +839,8 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         <EmailCircleModal
           circle={selectedCircle}
           members={allMembers.filter(m => (selectedCircle.memberIds || []).includes(m.id))}
+          stakeId={stakeId}
+          wardId={wardId}
           onClose={() => {
             setShowEmailModal(false);
             setSelectedCircle(null);
@@ -752,6 +857,32 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
             setSelectedCircle(null);
           }}
           onAddMembers={(memberIds) => addMembersToCircle(selectedCircle.id, memberIds)}
+        />
+      )}
+      {showInviteToAppModal && selectedCircle && (
+        <InviteToAppModal
+          circle={selectedCircle}
+          members={allMembers.filter(m => (selectedCircle.memberIds || []).includes(m.id))}
+          stakeId={stakeId}
+          wardId={wardId}
+          stakeName={wardName}
+          wardName={wardName}
+          onClose={() => {
+            setShowInviteToAppModal(false);
+            setSelectedCircle(null);
+          }}
+        />
+      )}
+
+      {showConfirmLiveModal && circleToToggle && (
+        <ConfirmLiveModeModal
+          circle={circleToToggle}
+          members={allMembers.filter(m => (circleToToggle.memberIds || []).includes(m.id))}
+          onConfirm={() => confirmToggleMode(circleToToggle.id)}
+          onCancel={() => {
+            setShowConfirmLiveModal(false);
+            setCircleToToggle(null);
+          }}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, addDoc, query, getDocs, updateDoc, deleteDoc, where, writeBatch } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -12,6 +12,9 @@ import MemberDashboard from './components/member/MemberDashboard';
 import QuickAddMemberModal from './components/member/QuickAddMemberModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import EmailAdminsModal from './components/EmailAdminsModal';
+import TestReportsModal from './components/TestReportsModal';
+import SetupPassword from './components/SetupPassword';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -113,6 +116,7 @@ export default function App() {
         <Routes>
           {/* Privacy Policy Route - accessible at /privacy */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/setup-password" element={<SetupPassword />} />
 
           {/* Main App Route */}
           <Route path="*" element={
@@ -422,6 +426,11 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
 
   const handleLogin = async () => {
     setError('');
@@ -430,17 +439,68 @@ function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-      // Update hasLoggedIn to true
+      // Update users collection
       const userDocRef = doc(db, 'users', userCredential.user.uid);
       await updateDoc(userDocRef, {
         hasLoggedIn: true,
         lastLoginAt: new Date().toISOString()
       });
 
+      // Also update the member document
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.data();
+
+      if (userData?.stakeId && userData?.wardId) {
+        // Find member document with this email
+        const membersRef = collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members');
+        const memberQuery = query(membersRef, where('email', '==', email));
+        const memberSnapshot = await getDocs(memberQuery);
+
+        if (!memberSnapshot.empty) {
+          const memberDoc = memberSnapshot.docs[0];
+          await updateDoc(memberDoc.ref, {
+            hasLoggedIn: true,
+            lastLoginAt: new Date().toISOString()
+          });
+        }
+      }
+
     } catch (err) {
       setError('Invalid email or password');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setResetError('');
+    setResetMessage('');
+    setResetLoading(true);
+
+    try {
+      const actionCodeSettings = {
+        url: 'https://mystakefriends.com',
+        handleCodeInApp: false
+      };
+
+      await sendPasswordResetEmail(auth, resetEmail, actionCodeSettings);
+      setResetMessage('Password reset email sent! Please check your inbox.');
+      setResetEmail('');
+      // Close modal after 3 seconds
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setResetMessage('');
+      }, 3000);
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        setResetError('No account found with this email address.');
+      } else if (err.code === 'auth/invalid-email') {
+        setResetError('Please enter a valid email address.');
+      } else {
+        setResetError('Failed to send reset email. Please try again.');
+      }
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -488,8 +548,76 @@ function LoginPage() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
+
+          <div className="text-center">
+            <button
+              onClick={() => setShowForgotPassword(true)}
+              className="text-sm text-rose-600 hover:text-rose-700 hover:underline transition-colors"
+            >
+              Forgot Password?
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Reset Password</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handlePasswordReset()}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              {resetError && (
+                <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm">
+                  {resetError}
+                </div>
+              )}
+
+              {resetMessage && (
+                <div className="bg-green-50 text-green-600 px-4 py-2 rounded-lg text-sm">
+                  {resetMessage}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmail('');
+                    setResetError('');
+                    setResetMessage('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordReset}
+                  disabled={resetLoading || !resetEmail}
+                  className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
+                >
+                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -510,6 +638,7 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
   const [selectedWardForAdmin, setSelectedWardForAdmin] = useState(null);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [memberToTransfer, setMemberToTransfer] = useState(null);
+  const [showEmailAdminsModal, setShowEmailAdminsModal] = useState(false);
 
   useEffect(() => {
     loadStakeData();
@@ -538,10 +667,10 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
         const membersSnapshot = await getDocs(membersQuery);
         membersSnapshot.docs.forEach(doc => {
           allMembers.push({
+            ...doc.data(),
             id: doc.id,
             wardId: ward.id,
-            wardName: ward.name,
-            ...doc.data()
+            wardName: ward.name
           });
         });
       }
@@ -590,7 +719,7 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
       });
 
       alert(`Invitation sent to ${member.email}`);
-      loadWardData(); // or loadStakeData() depending on which dashboard
+      await loadStakeData();
     } catch (error) {
       console.error('Error inviting member:', error);
       alert(`Failed to send invitation: ${error.message}`);
@@ -699,6 +828,14 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
               )}
 
               <button
+                onClick={() => setShowEmailAdminsModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Email All Admins
+              </button>
+
+              <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -772,8 +909,13 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
             }}
             onDeleteMember={async (member) => {
               if (confirm('Are you sure you want to delete this member?')) {
-                await deleteDoc(doc(db, 'stakes', userData.stakeId, 'wards', member.wardId, 'members', member.id));
-                loadStakeData();
+                try {
+                  await deleteDoc(doc(db, 'stakes', userData.stakeId, 'wards', member.wardId, 'members', member.id));
+                  await loadStakeData();
+                } catch (error) {
+                  console.error('Error deleting member:', error);
+                  alert('Failed to delete member: ' + error.message);
+                }
               }
             }}
             onInviteMember={inviteMember}
@@ -840,9 +982,9 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
           wards={selectedWard === 'all' ? wards : undefined}
           db={db}
           onClose={() => setShowMemberModal(false)}
-          onSave={() => {
+          onSave={async () => {
             setShowMemberModal(false);
-            loadStakeData();
+            await loadStakeData();
           }}
         />
       )}
@@ -856,11 +998,19 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
             setShowMemberModal(false);
             setSelectedMember(null);
           }}
-          onSave={() => {
+          onSave={async () => {
             setShowMemberModal(false);
             setSelectedMember(null);
-            loadStakeData();
+            await loadStakeData();
           }}
+        />
+      )}
+
+      {showEmailAdminsModal && (
+        <EmailAdminsModal
+          stakeId={userData.stakeId}
+          stakeName={stakeInfo?.name || 'Stake'}
+          onClose={() => setShowEmailAdminsModal(false)}
         />
       )}
 
@@ -870,9 +1020,9 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
           stakeId={userData.stakeId}
           wardId={selectedWard}
           onClose={() => setShowUploadModal(false)}
-          onComplete={() => {
+          onComplete={async () => {
             setShowUploadModal(false);
-            loadStakeData();
+            await loadStakeData();
           }}
         />
       )}
@@ -933,10 +1083,10 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
             setShowTransferModal(false);
             setMemberToTransfer(null);
           }}
-          onComplete={() => {
+          onComplete={async () => {
             setShowTransferModal(false);
             setMemberToTransfer(null);
-            loadStakeData();
+            await loadStakeData();
           }}
         />
       )}
@@ -971,8 +1121,10 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
 
       // Load ward info
       const wardDoc = await getDoc(doc(db, 'stakes', userData.stakeId, 'wards', userData.wardId));
+      let wardData = null;
       if (wardDoc.exists()) {
-        setWardInfo({ id: wardDoc.id, ...wardDoc.data() });
+        wardData = { id: wardDoc.id, ...wardDoc.data() };
+        setWardInfo(wardData);
       }
 
       // Load members
@@ -980,7 +1132,12 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
         collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members')
       );
       const membersSnapshot = await getDocs(membersQuery);
-      setMembers(membersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setMembers(membersSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        wardId: userData.wardId,
+        wardName: wardData?.name
+      })));
 
       // Load circles count
       const circlesQuery = query(
@@ -1013,7 +1170,7 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
       });
 
       alert(`Invitation sent to ${member.email}`);
-      loadWardData(); // or loadStakeData() depending on which dashboard
+      await loadWardData(); // or loadStakeData() depending on which dashboard
     } catch (error) {
       console.error('Error inviting member:', error);
       alert(`Failed to send invitation: ${error.message}`);
@@ -1059,7 +1216,7 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
     }
 
     alert(`Invitations sent!\nSuccess: ${successCount}\nFailed: ${failCount}`);
-    loadWardData(); // or loadStakeData() depending on which dashboard
+    await loadWardData(); // or loadStakeData() depending on which dashboard
   };
 
 
@@ -1167,8 +1324,13 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
             }}
             onDeleteMember={async (memberId) => {
               if (confirm('Are you sure you want to delete this member?')) {
-                await deleteDoc(doc(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members', memberId));
-                loadWardData();
+                try {
+                  await deleteDoc(doc(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members', memberId));
+                  await loadWardData();
+                } catch (error) {
+                  console.error('Error deleting member:', error);
+                  alert('Failed to delete member: ' + error.message);
+                }
               }
             }}
             onInviteMember={inviteMember}
@@ -1201,9 +1363,9 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
           wardId={userData.wardId}
           db={db}
           onClose={() => setShowMemberModal(false)}
-          onSave={() => {
+          onSave={async () => {
             setShowMemberModal(false);
-            loadWardData();
+            await loadWardData();
           }}
         />
       )}
@@ -1217,10 +1379,10 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
             setShowMemberModal(false);
             setSelectedMember(null);
           }}
-          onSave={() => {
+          onSave={async () => {
             setShowMemberModal(false);
             setSelectedMember(null);
-            loadWardData();
+            await loadWardData();
           }}
         />
       )}
@@ -1231,9 +1393,9 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
           stakeId={userData.stakeId}
           wardId={userData.wardId}
           onClose={() => setShowUploadModal(false)}
-          onComplete={() => {
+          onComplete={async () => {
             setShowUploadModal(false);
-            loadWardData();
+            await loadWardData();
           }}
         />
       )}
@@ -1254,7 +1416,7 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
               updatedAt: new Date().toISOString()
             });
             setShowWardAdminModal(false);
-            loadWardData();
+            await loadWardData();
           }}
         />
       )}
@@ -1816,8 +1978,6 @@ function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDele
   );
 }
 
-// Member Card Component
-// Member Card Component
 function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }) {
   const [inviting, setInviting] = useState(false);
   const age = calculateAge(member.dob);
@@ -1836,7 +1996,7 @@ function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }
       inviting
         ? 'border-gray-300 bg-gray-50'
         : age !== null && age <= 17
-        ? 'bg-yellow-50 border-yellow-300 hover:shadow-md'
+        ? 'bg-purple-50 border-purple-300 hover:shadow-md'
         : 'border-gray-200 hover:shadow-md'
     }`}>
       {inviting ? (
@@ -1930,22 +2090,6 @@ function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{member.phone}</span>
-                <div className="flex items-center gap-1 ml-auto">
-                  {member.maritalStatus === 'married' && (
-                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" title="Married" />
-                  )}
-                  {member.maritalStatus === 'widowed' && (
-                    <Heart className="w-3.5 h-3.5 text-gray-400" title="Widowed" />
-                  )}
-                  {member.maritalStatus === 'divorced' && (
-                    <Heart className="w-3.5 h-3.5 text-gray-400" title="Divorced" style={{ opacity: 0.5 }} />
-                  )}
-                  {member.numChildren && parseInt(member.numChildren) > 0 && (
-                    <span className="flex items-center gap-0.5 text-rose-500" title={`${member.numChildren} ${parseInt(member.numChildren) === 1 ? 'child' : 'children'}`}>
-                      <Baby className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-                </div>
               </div>
             )}
           </div>
@@ -2230,6 +2374,7 @@ function SuperAdminDashboard({ user }) {
   const [selectedWard, setSelectedWard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [totalCircles, setTotalCircles] = useState(0);
+  const [showTestReportsModal, setShowTestReportsModal] = useState(false);
 
   useEffect(() => {
     loadStakes();
@@ -2291,13 +2436,22 @@ function SuperAdminDashboard({ user }) {
                 <p className="text-sm text-gray-500">Super Administrator</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowTestReportsModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-500 to-amber-500 text-white rounded-lg hover:from-rose-600 hover:to-amber-600 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Test Reports
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -2382,7 +2536,7 @@ function SuperAdminDashboard({ user }) {
                     onDelete={async () => {
                       if (confirm('Are you sure you want to delete this stake?')) {
                         await deleteDoc(doc(db, 'stakes', stake.id));
-                        loadStakes();
+                        await loadStakes();
                       }
                     }}
                     onRefresh={loadStakes}
@@ -2410,10 +2564,10 @@ function SuperAdminDashboard({ user }) {
             setShowStakeModal(false);
             setSelectedStake(null);
           }}
-          onSave={() => {
+          onSave={async () => {
             setShowStakeModal(false);
             setSelectedStake(null);
-            loadStakes();
+            await loadStakes();
           }}
         />
       )}
@@ -2425,10 +2579,10 @@ function SuperAdminDashboard({ user }) {
             setShowWardModal(false);
             setSelectedStake(null);
           }}
-          onSave={() => {
+          onSave={async () => {
             setShowWardModal(false);
             setSelectedStake(null);
-            loadStakes();
+            await loadStakes();
           }}
         />
       )}
@@ -2450,8 +2604,15 @@ function SuperAdminDashboard({ user }) {
             });
             setShowStakeAdminModal(false);
             setSelectedStake(null);
-            loadStakes();
+            await loadStakes();
           }}
+        />
+      )}
+
+      {showTestReportsModal && (
+        <TestReportsModal
+          stakes={stakes}
+          onClose={() => setShowTestReportsModal(false)}
         />
       )}
 
@@ -2477,7 +2638,7 @@ function SuperAdminDashboard({ user }) {
             setShowWardAdminModal(false);
             setSelectedStake(null);
             setSelectedWard(null);
-            loadStakes();
+            await loadStakes();
           }}
         />
       )}
