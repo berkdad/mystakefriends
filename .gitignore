@@ -68,3 +68,5 @@ functions/src/index.ts
 # Environment variables - NEVER COMMIT THESE
 .env*
 !.env.examplefunctions/src/index.ts
+
+serviceAccountKey.json
