@@ -52,9 +52,12 @@ export default function CircleChatView({ db, storage, stakeId, wardId, circleId,
 
         const fileType = file.type.startsWith('image/') ? 'image' : 'document';
 
+        const currentMember = getMemberProfile(currentMemberId);
+        const preferredName = currentMember?.preferredName || currentMemberName;
+
         await addDoc(collection(db, 'stakes', stakeId, 'wards', wardId, 'circles', circleId, 'chats'), {
           memberId: currentMemberId,
-          memberName: currentMemberName,
+          memberName: preferredName,
           type: fileType,
           fileUrl: downloadUrl,
           fileName: file.name,
@@ -78,9 +81,12 @@ export default function CircleChatView({ db, storage, stakeId, wardId, circleId,
 
     setSending(true);
     try {
+      const currentMember = getMemberProfile(currentMemberId);
+      const preferredName = currentMember?.preferredName || currentMemberName;
+
       await addDoc(collection(db, 'stakes', stakeId, 'wards', wardId, 'circles', circleId, 'chats'), {
         memberId: currentMemberId,
-        memberName: currentMemberName,
+        memberName: preferredName,
         type: 'text',
         message: newMessage.trim(),
         createdAt: serverTimestamp()
@@ -158,7 +164,7 @@ export default function CircleChatView({ db, storage, stakeId, wardId, circleId,
                 {/* Message Content */}
                 <div className={`flex-1 max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'} flex flex-col`}>
                   <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <span className="text-sm font-medium text-gray-800">{msg.memberName}</span>
+                    <span className="text-sm font-medium text-gray-800">{memberProfile?.preferredName || msg.memberName}</span>
                     <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                   </div>
 

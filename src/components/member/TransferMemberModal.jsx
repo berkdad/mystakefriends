@@ -27,6 +27,7 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
       const newMemberRef = doc(db, 'stakes', stakeId, 'wards', targetWardId, 'members', member.id);
       batch.set(newMemberRef, {
         ...member,
+        wardId: targetWardId,  // Set correct wardId
         updatedAt: new Date().toISOString(),
         transferredFrom: currentWard.id,
         transferredAt: new Date().toISOString()
@@ -54,18 +55,18 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
         }
       }
 
-      // 4. Update user account if exists
+      // 4. Update user account if exists (case-insensitive email search)
       if (member.email) {
-        const usersQuery = query(
-          collection(db, 'users'),
-          where('email', '==', member.email)
-        );
-        const usersSnapshot = await getDocs(usersQuery);
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const memberEmailLower = member.email.toLowerCase();
 
-        if (!usersSnapshot.empty) {
-          const userDoc = usersSnapshot.docs[0];
+        const userDoc = usersSnapshot.docs.find(doc =>
+          doc.data().email?.toLowerCase() === memberEmailLower
+        );
+
+        if (userDoc) {
+          // Only update memberWardId - preserve wardId for admins with "all" access
           await updateDoc(doc(db, 'users', userDoc.id), {
-            wardId: targetWardId,
             memberWardId: targetWardId,
             updatedAt: new Date().toISOString()
           });

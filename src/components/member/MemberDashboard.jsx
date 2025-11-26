@@ -18,6 +18,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [myMemberProfile, setMyMemberProfile] = useState(null);
+  const [actualWardId, setActualWardId] = useState(null);
 
   // Debug logging
   console.log('MemberDashboard - isAdmin:', isAdmin);
@@ -37,49 +38,59 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
       console.log('userData:', userData);
       console.log('userData.stakeId:', userData.stakeId);
       console.log('userData.wardId:', userData.wardId);
+      console.log('userData.memberWardId:', userData.memberWardId);
 
-      if (!userData.wardId) {
-        console.log('No wardId found for user. Searching all wards for member profile...');
+      // Determine the actual ward to use for member lookup
+      let actualWardId = userData.memberWardId || userData.wardId;
+
+      // If wardId is 'all' (stake admin with no memberWardId) or missing, search all wards
+      if (!actualWardId || actualWardId === 'all') {
+        console.log('No specific wardId. Searching all wards for member profile...');
 
         // Search all wards for this user's member profile
         const wardsSnapshot = await getDocs(collection(db, 'stakes', userData.stakeId, 'wards'));
         console.log('Total wards found:', wardsSnapshot.size);
 
+        const userEmailLower = user.email.toLowerCase();
+
         for (const wardDoc of wardsSnapshot.docs) {
           console.log(`Searching ward: ${wardDoc.id} (${wardDoc.data().name})`);
-          const membersQuery = query(
-            collection(db, 'stakes', userData.stakeId, 'wards', wardDoc.id, 'members'),
-            where('email', '==', user.email)
-          );
-          const membersSnapshot = await getDocs(membersQuery);
-          console.log(`  Members found with email ${user.email}:`, membersSnapshot.size);
 
-          if (!membersSnapshot.empty) {
-            const foundMember = membersSnapshot.docs[0];
+          // Get all members in this ward and search case-insensitively
+          const membersSnapshot = await getDocs(
+            collection(db, 'stakes', userData.stakeId, 'wards', wardDoc.id, 'members')
+          );
+
+          const foundMember = membersSnapshot.docs.find(doc =>
+            doc.data().email?.toLowerCase() === userEmailLower
+          );
+
+          if (foundMember) {
             console.log('  FOUND MEMBER!', foundMember.id, foundMember.data());
 
-            // Found the member! Update userData.wardId for this session AND in Firestore
-            userData.wardId = wardDoc.id;
-            console.log(`Found member profile in ward: ${wardDoc.id}, updating user document...`);
+            // Found the member! Update actualWardId
+            actualWardId = wardDoc.id;
+            console.log(`Found member profile in ward: ${wardDoc.id}`);
 
-            // Permanently update the user's document so we don't have to search again
-            try {
-              const userDocRef = doc(db, 'users', user.uid);
-              await updateDoc(userDocRef, {
-                wardId: wardDoc.id,
-                memberWardId: wardDoc.id,
-                updatedAt: new Date().toISOString()
-              });
-              console.log('User document updated successfully');
-            } catch (updateError) {
-              console.error('Error updating user document:', updateError);
+            // Update user document with memberWardId if it was missing
+            if (!userData.memberWardId || userData.memberWardId === 'all') {
+              try {
+                const userDocRef = doc(db, 'users', user.uid);
+                await updateDoc(userDocRef, {
+                  memberWardId: wardDoc.id,
+                  updatedAt: new Date().toISOString()
+                });
+                console.log('User document updated with memberWardId');
+              } catch (updateError) {
+                console.error('Error updating user document:', updateError);
+              }
             }
 
             break;
           }
         }
 
-        if (!userData.wardId) {
+        if (!actualWardId || actualWardId === 'all') {
           console.log('Member profile not found in any ward.');
           console.log('=== MEMBER DASHBOARD DEBUG END (NO WARD) ===');
           setLoading(false);
@@ -87,31 +98,34 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
         }
       }
 
-      console.log('Using wardId:', userData.wardId);
+      console.log('Using wardId for member lookup:', actualWardId);
 
-      // Find member's profile document
-      const membersQuery = query(
-        collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members'),
-        where('email', '==', user.email)
+      // Find member's profile document (case-insensitive email search)
+      const allMembersSnapshot = await getDocs(
+        collection(db, 'stakes', userData.stakeId, 'wards', actualWardId, 'members')
       );
-      const membersSnapshot = await getDocs(membersQuery);
-      console.log('Member profile search results:', membersSnapshot.size);
 
-      if (membersSnapshot.empty) {
-        console.error('Member profile not found in ward:', userData.wardId);
+      const userEmailLower = user.email.toLowerCase();
+      const memberDoc = allMembersSnapshot.docs.find(doc =>
+        doc.data().email?.toLowerCase() === userEmailLower
+      );
+
+      console.log('Member profile search results:', memberDoc ? '1' : '0');
+
+      if (!memberDoc) {
+        console.error('Member profile not found in ward:', actualWardId);
         console.log('=== MEMBER DASHBOARD DEBUG END (NO MEMBER) ===');
         setLoading(false);
         return;
       }
 
-      const memberDoc = membersSnapshot.docs[0];
       const memberProfile = { id: memberDoc.id, ...memberDoc.data() };
       console.log('Member profile loaded:', memberDoc.id, memberProfile);
       setMyMemberProfile(memberProfile);
 
       // Find the circle this member belongs to
       const circlesQuery = query(
-        collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'circles')
+        collection(db, 'stakes', userData.stakeId, 'wards', actualWardId, 'circles')
       );
       const circlesSnapshot = await getDocs(circlesQuery);
       console.log('Total circles in ward:', circlesSnapshot.size);
@@ -142,18 +156,14 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
       setCircleData(myCircle);
 
-      // Load all members in the circle
-      const allMembersQuery = query(
-        collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members')
-      );
-      const allMembersSnapshot = await getDocs(allMembersQuery);
+      // Reuse allMembersSnapshot from earlier to get all members
       const allMembers = allMembersSnapshot.docs.map(doc => {
         const data = doc.data();
         delete data.id;
         return {
           ...data,
           id: doc.id,
-          wardId: userData.wardId
+          wardId: actualWardId
         };
       });
 
@@ -164,7 +174,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
       // Load recent chats (last 5)
       const chatsQuery = query(
-        collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'circles', myCircle.id, 'chats'),
+        collection(db, 'stakes', userData.stakeId, 'wards', actualWardId, 'circles', myCircle.id, 'chats'),
         orderBy('createdAt', 'desc'),
         limit(5)
       );
@@ -174,13 +184,16 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
       // Load upcoming events (future events only)
       const now = new Date().toISOString();
       const eventsQuery = query(
-        collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'circles', myCircle.id, 'events'),
+        collection(db, 'stakes', userData.stakeId, 'wards', actualWardId, 'circles', myCircle.id, 'events'),
         where('eventDate', '>=', now),
         orderBy('eventDate', 'asc'),
         limit(5)
       );
       const eventsSnapshot = await getDocs(eventsQuery);
       setUpcomingEvents(eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+      // Store the actualWardId in state for component props
+      setActualWardId(actualWardId);
 
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -342,7 +355,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
           <EditMyProfileModal
             member={myMemberProfile}
             stakeId={userData.stakeId}
-            wardId={userData.wardId}
+            wardId={actualWardId}
             db={db}
             storage={storage}
             onClose={() => setShowEditProfileModal(false)}
@@ -496,10 +509,10 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             db={db}
             storage={storage}
             stakeId={userData.stakeId}
-            wardId={userData.wardId}
+            wardId={actualWardId}
             circleId={circleData.id}
             currentMemberId={myMemberProfile.id}
-            currentMemberName={myMemberProfile.fullName}
+            currentMemberName={myMemberProfile.preferredName || myMemberProfile.fullName}
             circleMembers={circleMembers}
           />
         )}
@@ -509,10 +522,10 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             db={db}
             storage={storage}
             stakeId={userData.stakeId}
-            wardId={userData.wardId}
+            wardId={actualWardId}
             circleId={circleData.id}
             currentMemberId={myMemberProfile.id}
-            currentMemberName={myMemberProfile.fullName}
+            currentMemberName={myMemberProfile.preferredName || myMemberProfile.fullName}
             circleMembers={circleMembers}
           />
         )}
@@ -532,7 +545,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
         <EditMyProfileModal
           member={myMemberProfile}
           stakeId={userData.stakeId}
-          wardId={userData.wardId}
+          wardId={actualWardId}
           db={db}
           storage={storage}
           onClose={() => setShowEditProfileModal(false)}

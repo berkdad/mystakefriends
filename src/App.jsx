@@ -639,6 +639,9 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [memberToTransfer, setMemberToTransfer] = useState(null);
   const [showEmailAdminsModal, setShowEmailAdminsModal] = useState(false);
+  // Get current user email
+  const currentUserEmail = auth.currentUser?.email?.toLowerCase();
+  const isSuperAdmin = currentUserEmail === 'jim@amtoxlab.com' || currentUserEmail === 'berkdad@gmail.com';
 
   useEffect(() => {
     loadStakeData();
@@ -834,6 +837,152 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
                 <Mail className="w-4 h-4" />
                 Email All Admins
               </button>
+            {isSuperAdmin && (
+              <>
+              <button
+                onClick={async () => {
+                  try {
+                    const findOrphansFunc = httpsCallable(functions, 'findOrphanedData');
+                    const result = await findOrphansFunc({
+                      stakeId: userData.stakeId,
+                      wardId: selectedWard === 'all' ? null : selectedWard,
+                      dryRun: true
+                    });
+
+                    // Download as JSON file
+                    const dataStr = JSON.stringify(result.data, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `orphaned-data-${selectedWard}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+
+                    alert(`Found ${result.data.issuesFound} issues. Downloaded results as JSON file.`);
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message);
+                  }
+                }}
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Orphan Accts
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    // Find duplicates
+                    const searchTerm = prompt("Search for specific email (leave blank for all):", "kalina");
+
+                    const findDupsFunc = httpsCallable(functions, 'findDuplicateAccounts');
+                    const findResult = await findDupsFunc({
+                      stakeId: userData.stakeId,
+                      wardId: selectedWard,
+                      searchEmail: searchTerm
+                    });
+
+                    // Always download results
+                    const dataStr = JSON.stringify(findResult.data, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `duplicate-accounts-${selectedWard}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+
+                    if (findResult.data.duplicatesFound === 0) {
+                      alert('No duplicate accounts found!');
+                      return;
+                    }
+
+                    alert(`Found ${findResult.data.duplicatesFound} duplicate accounts. Results downloaded.`);
+
+                    if (!confirm(`Delete these ${findResult.data.duplicatesFound} duplicate user accounts?`)) {
+                      return;
+                    }
+
+                    // Clean up duplicates
+                    const cleanupFunc = httpsCallable(functions, 'cleanupDuplicateAccounts');
+                    const cleanResult = await cleanupFunc({
+                      duplicates: findResult.data.duplicates
+                    });
+
+                    alert(`Cleaned up ${cleanResult.data.cleaned} duplicate accounts!`);
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message);
+                  }
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Find Duplicate Accounts
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    const searchEmail = prompt("Enter email to search for:", "Chelseakalina@gmail.com");
+
+                    if (!searchEmail) return;
+
+                    const findAuthFunc = httpsCallable(functions, 'findAuthUsers');
+                    const result = await findAuthFunc({ searchEmail });
+
+                    // Download results as JSON
+                    const dataStr = JSON.stringify(result.data, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `auth-users-${searchEmail}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+
+                    alert(`Found ${result.data.found} authentication users. Results downloaded.`);
+                    console.log(result.data);
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Search Auth Users
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    // Based on the results, delete the iCloud account
+                    const cleanupFunc = httpsCallable(functions, 'cleanupAuthDuplicates');
+
+                    if (!confirm('Delete chelseakalina@icloud.com account and keep Gmail account?')) {
+                      return;
+                    }
+
+                    const result = await cleanupFunc({
+                      uidsToDelete: ['jl9eMGKmiFgesF09dEU10nePmFq1'], // iCloud UID
+                      keepEmail: 'chelseakalina@gmail.com',
+                      stakeId: userData.stakeId,
+                      wardId: selectedWard,
+                    });
+
+                    console.log(result.data);
+                    alert(`Cleaned up ${result.data.cleaned} accounts. Chelsea can now log in with Gmail.`);
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message);
+                  }
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Fix Chelsea's Duplicate
+              </button>
+            </>
+            )}
 
               <button
                 onClick={handleLogout}

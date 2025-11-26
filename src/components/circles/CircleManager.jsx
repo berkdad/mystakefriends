@@ -877,7 +877,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       {showConfirmLiveModal && circleToToggle && (
         <ConfirmLiveModeModal
           circle={circleToToggle}
-          members={allMembers.filter(m => (circleToToggle.memberIds || []).includes(m.id))}
+          members={allMembers}
           onConfirm={() => confirmToggleMode(circleToToggle.id)}
           onCancel={() => {
             setShowConfirmLiveModal(false);
