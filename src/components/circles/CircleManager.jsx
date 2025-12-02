@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-//import type { CollisionDetection, Collision } from '@dnd-kit/core';
-import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin, useDroppable  } from '@dnd-kit/core';
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, pointerWithin, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Target, Plus, Trash2, Edit2, Mail, User } from 'lucide-react';
+import { Target, Plus, Trash2, Edit2, Mail, User, Search, X, ChevronDown, ChevronUp, LayoutGrid, List, Printer } from 'lucide-react';
 import CircleCard from './CircleCard';
 import MemberFilters from './MemberFilters';
 import DraggableMember from './DraggableMember';
@@ -12,6 +11,9 @@ import EmailCircleModal from './EmailCircleModal';
 import AddMembersModal from './AddMembersModal';
 import InviteToAppModal from './InviteToAppModal';
 import ConfirmLiveModeModal from './ConfirmLiveModeModal';
+import CompactCircleCard from './CompactCircleCard';
+import CircleDetailModal from './CircleDetailModal';
+import jsPDF from 'jspdf';
 
 function expandRect(rect, by = 32) {
   return {
@@ -143,6 +145,13 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   const [selectedCircle, setSelectedCircle] = useState(null);
   const [activeMember, setActiveMember] = useState(null);
 
+  // New state for enhanced features
+  const [isCompactView, setIsCompactView] = useState(false);
+  const [allCollapsed, setAllCollapsed] = useState(false);
+  const [collapsedCircles, setCollapsedCircles] = useState({});
+  const [circleSearchTerm, setCircleSearchTerm] = useState('');
+  const [showCircleDetailModal, setShowCircleDetailModal] = useState(false);
+
   const { setNodeRef: setAvailRef, isOver: isOverAvail } = useDroppable({
     id: 'available',
     data: { type: 'available' },
@@ -271,7 +280,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     setFilteredMembers(filtered);
   };
 
-  const calculateAge = (dob) => {
+  const calculateAgeLocal = (dob) => {
     if (!dob) return 0;
     const birthDate = new Date(dob);
     const today = new Date();
@@ -282,8 +291,6 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     }
     return age;
   };
-
-
 
   const createCircle = async () => {
     try {
@@ -365,6 +372,32 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     } catch (err) {
       console.error('Error adding members:', err);
       setError('Failed to add members');
+    }
+  };
+
+  const removeMembersFromCircle = async (circleId, memberIds) => {
+    try {
+      const circle = circles.find(c => c.id === circleId);
+      const updatedMemberIds = (circle.memberIds || []).filter(id => !memberIds.includes(id));
+      const updatedCaptainId = memberIds.includes(circle.captainId) ? null : circle.captainId;
+
+      await updateDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', circleId), {
+        memberIds: updatedMemberIds,
+        captainId: updatedCaptainId
+      });
+
+      setCircles(prev => prev.map(c =>
+        c.id === circleId ? { ...c, memberIds: updatedMemberIds, captainId: updatedCaptainId } : c
+      ));
+
+      // Add back to available
+      const membersToReturn = allMembers.filter(m => memberIds.includes(m.id));
+      setAvailableMembers(prev => [...prev, ...membersToReturn]);
+
+      setSuccess(`${memberIds.length} member${memberIds.length > 1 ? 's' : ''} removed successfully`);
+    } catch (err) {
+      console.error('Error removing members:', err);
+      setError('Failed to remove members');
     }
   };
 
@@ -607,11 +640,193 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     }
   };
 
+  // Toggle collapse for individual circle
+  const toggleCircleCollapse = (circleId) => {
+    setCollapsedCircles(prev => ({
+      ...prev,
+      [circleId]: !prev[circleId]
+    }));
+  };
+
+  // Toggle all circles collapsed/expanded
+  const toggleAllCollapsed = () => {
+    const newState = !allCollapsed;
+    setAllCollapsed(newState);
+
+    const newCollapsedState = {};
+    circles.forEach(circle => {
+      newCollapsedState[circle.id] = newState;
+    });
+    setCollapsedCircles(newCollapsedState);
+  };
+
+  // Filter circles based on search term (matches member names within circles)
+  const getFilteredCircles = () => {
+    // First sort circles alphabetically by name
+    let sortedCircles = [...circles].sort((a, b) =>
+      (a.name || '').localeCompare(b.name || '')
+    );
+
+    if (!circleSearchTerm.trim()) {
+      return sortedCircles;
+    }
+
+    const searchLower = circleSearchTerm.toLowerCase();
+
+    return sortedCircles.filter(circle => {
+      // Check if circle name matches
+      if (circle.name?.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      // Check if any member name matches
+      const circleMembers = allMembers.filter(m =>
+        (circle.memberIds || []).includes(m.id)
+      );
+
+      return circleMembers.some(member =>
+        member.fullName?.toLowerCase().includes(searchLower)
+      );
+    });
+  };
+
+  // Print Circles PDF
+  const printCirclesPDF = () => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    let yPosition = margin;
+
+    // Sort circles alphabetically
+    const sortedCircles = [...circles].sort((a, b) =>
+      (a.name || '').localeCompare(b.name || '')
+    );
+
+    // Title
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`${wardName} - Friendship Circles`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+
+    // Date
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const dateStr = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    pdf.text(`Generated: ${dateStr}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Summary
+    pdf.setFontSize(11);
+    const totalMembers = circles.reduce((acc, c) => acc + (c.memberIds?.length || 0), 0);
+    pdf.text(`Total Circles: ${circles.length}  |  Total Members Assigned: ${totalMembers}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Draw a line
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Circles
+    sortedCircles.forEach((circle, circleIndex) => {
+      const circleMembers = allMembers.filter(m =>
+        (circle.memberIds || []).includes(m.id)
+      );
+      const captain = circleMembers.find(m => m.id === circle.captainId);
+      const regularMembers = circleMembers
+        .filter(m => m.id !== circle.captainId)
+        .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+
+      // Check if we need a new page
+      const captainLines = captain ? (captain.phone ? 2 : 1) : 0;
+      const estimatedHeight = 25 + (captainLines * 5) + (regularMembers.length * 6);
+      if (yPosition + estimatedHeight > pageHeight - margin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+
+      // Circle name
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(180, 70, 70); // Rose color
+      pdf.text(circle.name, margin, yPosition);
+      yPosition += 5;
+
+      // Member count on its own line
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`${circleMembers.length} member${circleMembers.length !== 1 ? 's' : ''}`, margin, yPosition);
+      yPosition += 6;
+
+      // Captain (if exists)
+      if (captain) {
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(180, 130, 50); // Amber color
+        const captainText = `[Captain] ${captain.fullName}`;
+        pdf.text(captainText, margin + 5, yPosition);
+        yPosition += 5;
+
+        if (captain.phone) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(9);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(`   ${captain.phone}`, margin + 5, yPosition);
+          yPosition += 5;
+        }
+        yPosition += 1;
+      }
+
+      // Regular members
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(60, 60, 60);
+      pdf.setFontSize(10);
+
+      regularMembers.forEach(member => {
+        if (yPosition > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        let memberText = `• ${member.fullName}`;
+        if (member.phone) {
+          memberText += `  (${member.phone})`;
+        }
+        pdf.text(memberText, margin + 5, yPosition);
+        yPosition += 5;
+      });
+
+      yPosition += 10;
+
+      // Draw separator line between circles
+      if (circleIndex < sortedCircles.length - 1) {
+        pdf.setDrawColor(230, 230, 230);
+        pdf.line(margin, yPosition - 5, pageWidth - margin, yPosition - 5);
+      }
+    });
+
+    // Footer on last page
+    pdf.setFontSize(8);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('My Stake Friends - Friendship Circles', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    // Save the PDF
+    pdf.save(`${wardName.replace(/\s+/g, '_')}_Circles_${new Date().toISOString().split('T')[0]}.pdf`);
+    setSuccess('PDF downloaded successfully');
+  };
+
   // Generate all draggable IDs
   const allMemberIds = [
     ...filteredMembers.map(m => `member-${m.id}`),
     ...circles.flatMap(c => (c.memberIds || []).map(id => `member-${id}`))
   ];
+
+  const displayedCircles = getFilteredCircles();
 
   if (loading) {
     return (
@@ -619,59 +834,6 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         <div className="text-gray-500">Loading circles...</div>
       </div>
     );
-  }
-
-  // CircleManager.jsx — define this inside the component
-  function onDragEnd({ active, over }) {
-    if (!over) return; // dropped on nothing
-
-    const memberId = active.id;
-    const fromCircleId = active.data?.current?.circleId ?? null; // null => Available
-    const draggedMember = active.data?.current?.member ?? null;   // set in DraggableMember
-    const overType = over.data?.current?.type ?? null;            // 'circle' | 'available'
-    const toCircleId = overType === 'circle' ? over.id : null;
-
-    // No change (same list)
-    if ((fromCircleId && fromCircleId === toCircleId) ||
-        (!fromCircleId && overType === 'available')) {
-      return;
-    }
-
-    // Move across lists
-    setCircles(prev => {
-      // clone circles and their memberIds
-      const next = prev.map(c => ({ ...c, memberIds: [...(c.memberIds || [])] }));
-
-      const removeFrom = (cid) => {
-        const c = next.find(x => x.id === cid);
-        if (c) c.memberIds = c.memberIds.filter(id => id !== memberId);
-      };
-      const addTo = (cid) => {
-        const c = next.find(x => x.id === cid);
-        if (c && !c.memberIds.includes(memberId)) c.memberIds.push(memberId);
-      };
-
-      // FROM
-      if (fromCircleId) {
-        removeFrom(fromCircleId);
-      } else {
-        // from Available
-        setAvailableMembers(prevAvail => prevAvail.filter(m => m.id !== memberId));
-      }
-
-      // TO
-      if (overType === 'circle' && toCircleId) {
-        addTo(toCircleId);
-      } else if (overType === 'available') {
-        // back to Available (use full member object if we have it)
-        setAvailableMembers(prevAvail => {
-          if (prevAvail.some(m => m.id === memberId)) return prevAvail;
-          return [{ id: memberId, ...(draggedMember || {}) }, ...prevAvail];
-        });
-      }
-
-      return next;
-    });
   }
 
   function DraggableMemberOverlay({ member }) {
@@ -723,85 +885,216 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         <SortableContext items={allMemberIds} strategy={verticalListSortingStrategy}>
           <div className="flex-1 flex gap-6 overflow-y-auto">
             {/* Left sidebar - Available members with filters */}
-            <div className="w-80 flex flex-col bg-white rounded-lg shadow-md border border-gray-200 flex-shrink-0">
-              <div className="p-4 border-b border-gray-200 bg-rose-50 flex-shrink-0">
-                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-rose-500" />
-                  Available Members
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {filteredMembers.length} of {availableMembers.length} shown
-                </p>
-                {availableMembers.length !== filteredMembers.length && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    {availableMembers.length - filteredMembers.length} members hidden by filters
+            {!isCompactView && (
+              <div className="w-80 flex flex-col bg-white rounded-lg shadow-md border border-gray-200 flex-shrink-0">
+                <div className="p-4 border-b border-gray-200 bg-rose-50 flex-shrink-0">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-rose-500" />
+                    Available Members
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {filteredMembers.length} of {availableMembers.length} shown
                   </p>
-                )}
-              </div>
+                  {availableMembers.length !== filteredMembers.length && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      {availableMembers.length - filteredMembers.length} members hidden by filters
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex-shrink-0">
-                <MemberFilters filters={filters} onFilterChange={setFilters} />
-              </div>
+                <div className="flex-shrink-0">
+                  <MemberFilters filters={filters} onFilterChange={setFilters} />
+                </div>
 
-              <div
-                ref={setAvailRef}
-                className={`p-4 space-y-2 transition-all ${
-                  isOverAvail ? 'border-2 border-rose-400 bg-rose-50' : 'border border-transparent'
-                }`}
-              >
-                {filteredMembers.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    {availableMembers.length === 0
-                      ? 'All members are in circles'
-                      : 'No members match filters'}
-                  </div>
-                ) : (
-                  filteredMembers.map(member => (
-                    <DraggableMember
-                      key={member.id}
-                      member={member}
-                      parentCircleId={null}   // <- Important: “Available” has no parent circle
-                      showAge={true}
-                    />
-                  ))
-                )}
+                <div
+                  ref={setAvailRef}
+                  className={`p-4 space-y-2 transition-all overflow-y-auto flex-1 ${
+                    isOverAvail ? 'border-2 border-rose-400 bg-rose-50' : 'border border-transparent'
+                  }`}
+                >
+                  {filteredMembers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      {availableMembers.length === 0
+                        ? 'All members are in circles'
+                        : 'No members match filters'}
+                    </div>
+                  ) : (
+                    filteredMembers.map(member => (
+                      <DraggableMember
+                        key={member.id}
+                        member={member}
+                        parentCircleId={null}
+                        showAge={true}
+                      />
+                    ))
+                  )}
+                </div>
               </div>
-
-            </div>
+            )}
 
             {/* Right side - Circles */}
             <div className="flex-1 flex flex-col">
-              <div className="mb-4 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Friendship Circles ({circles.length})
-                </h2>
-                <button
-                  onClick={createCircle}
-                  className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Circle
-                </button>
+              {/* Header with controls */}
+              <div className="mb-4 flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Friendship Circles ({displayedCircles.length}{circleSearchTerm ? ` of ${circles.length}` : ''})
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    {/* Print PDF Button */}
+                    <button
+                      onClick={printCirclesPDF}
+                      className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      title="Print Circles PDF"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span className="hidden sm:inline">Print</span>
+                    </button>
+
+                    {/* View Toggle */}
+                    <button
+                      onClick={() => setIsCompactView(!isCompactView)}
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
+                        isCompactView
+                          ? 'bg-rose-100 border-rose-300 text-rose-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                      title={isCompactView ? 'Switch to Full View' : 'Switch to Compact View'}
+                    >
+                      {isCompactView ? (
+                        <>
+                          <LayoutGrid className="w-4 h-4" />
+                          <span className="hidden sm:inline">Full View</span>
+                        </>
+                      ) : (
+                        <>
+                          <List className="w-4 h-4" />
+                          <span className="hidden sm:inline">Compact View</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Collapse All (only in full view) */}
+                    {!isCompactView && circles.length > 0 && (
+                      <button
+                        onClick={toggleAllCollapsed}
+                        className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        title={allCollapsed ? 'Expand All' : 'Collapse All'}
+                      >
+                        {allCollapsed ? (
+                          <>
+                            <ChevronDown className="w-4 h-4" />
+                            <span className="hidden sm:inline">Expand All</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronUp className="w-4 h-4" />
+                            <span className="hidden sm:inline">Collapse All</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    <button
+                      onClick={createCircle}
+                      className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create Circle
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search/Filter Bar */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={circleSearchTerm}
+                      onChange={(e) => setCircleSearchTerm(e.target.value)}
+                      placeholder="Find circles or members..."
+                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    />
+                    {circleSearchTerm && (
+                      <button
+                        onClick={() => setCircleSearchTerm('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        title="Clear filter"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {circleSearchTerm && (
+                    <button
+                      onClick={() => setCircleSearchTerm('')}
+                      className="px-3 py-2 text-sm text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+                    >
+                      Clear Filter
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {circles.length === 0 ? (
-                <div className="flex flex-col items-center justify-center flex-1 bg-white rounded-lg shadow-md border-2 border-dashed border-gray-300 p-12">
-                  <Target className="w-16 h-16 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">No Circles Yet</h3>
-                  <p className="text-gray-600 text-center mb-6">
-                    Create your first friendship circle to get started
-                  </p>
-                  <button
-                    onClick={createCircle}
-                    className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Create First Circle
-                  </button>
+              {displayedCircles.length === 0 ? (
+                circleSearchTerm ? (
+                  <div className="flex flex-col items-center justify-center flex-1 bg-white rounded-lg shadow-md border border-gray-200 p-12">
+                    <Search className="w-16 h-16 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Circles Found</h3>
+                    <p className="text-gray-600 text-center mb-4">
+                      No circles or members match "{circleSearchTerm}"
+                    </p>
+                    <button
+                      onClick={() => setCircleSearchTerm('')}
+                      className="px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    >
+                      Clear Filter
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center flex-1 bg-white rounded-lg shadow-md border-2 border-dashed border-gray-300 p-12">
+                    <Target className="w-16 h-16 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Circles Yet</h3>
+                    <p className="text-gray-600 text-center mb-6">
+                      Create your first friendship circle to get started
+                    </p>
+                    <button
+                      onClick={createCircle}
+                      className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Create First Circle
+                    </button>
+                  </div>
+                )
+              ) : isCompactView ? (
+                /* Compact View */
+                <div className="space-y-2 pb-4">
+                  {displayedCircles.map(circle => {
+                    const circleMembers = allMembers.filter(m =>
+                      (circle.memberIds || []).includes(m.id)
+                    );
+                    const captain = circleMembers.find(m => m.id === circle.captainId);
+
+                    return (
+                      <CompactCircleCard
+                        key={circle.id}
+                        circle={circle}
+                        members={circleMembers}
+                        captain={captain}
+                        onClick={() => {
+                          setSelectedCircle(circle);
+                          setShowCircleDetailModal(true);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
-                  {circles.map(circle => (
+                /* Full View */
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4 items-start">
+                  {displayedCircles.map(circle => (
                     <CircleCard
                       key={circle.id}
                       circle={circle}
@@ -811,6 +1104,8 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       onSetCaptain={(memberId) => setCaptain(circle.id, memberId)}
                       onToggleMode={() => toggleMode(circle.id)}
                       onResendInvite={resendInvite}
+                      isCollapsed={collapsedCircles[circle.id] || false}
+                      onToggleCollapse={() => toggleCircleCollapse(circle.id)}
                       onEmail={() => {
                         setSelectedCircle(circle);
                         setShowEmailModal(true);
@@ -859,6 +1154,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
           onAddMembers={(memberIds) => addMembersToCircle(selectedCircle.id, memberIds)}
         />
       )}
+
       {showInviteToAppModal && selectedCircle && (
         <InviteToAppModal
           circle={selectedCircle}
@@ -883,6 +1179,45 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
             setShowConfirmLiveModal(false);
             setCircleToToggle(null);
           }}
+        />
+      )}
+
+      {showCircleDetailModal && selectedCircle && (
+        <CircleDetailModal
+          circle={selectedCircle}
+          members={allMembers.filter(m => (selectedCircle.memberIds || []).includes(m.id))}
+          allAvailableMembers={availableMembers}
+          onClose={() => {
+            setShowCircleDetailModal(false);
+            setSelectedCircle(null);
+          }}
+          onUpdateName={(newName) => {
+            updateCircleName(selectedCircle.id, newName);
+            setSelectedCircle(prev => ({ ...prev, name: newName }));
+          }}
+          onSetCaptain={(memberId) => {
+            setCaptain(selectedCircle.id, memberId);
+            setSelectedCircle(prev => ({ ...prev, captainId: memberId }));
+          }}
+          onRemoveMembers={(memberIds) => {
+            removeMembersFromCircle(selectedCircle.id, memberIds);
+            setSelectedCircle(prev => ({
+              ...prev,
+              memberIds: (prev.memberIds || []).filter(id => !memberIds.includes(id)),
+              captainId: memberIds.includes(prev.captainId) ? null : prev.captainId
+            }));
+          }}
+          onAddMembers={(memberIds) => {
+            addMembersToCircle(selectedCircle.id, memberIds);
+            setSelectedCircle(prev => ({
+              ...prev,
+              memberIds: [...(prev.memberIds || []), ...memberIds]
+            }));
+          }}
+          onToggleMode={() => {
+            toggleMode(selectedCircle.id);
+          }}
+          onResendInvite={resendInvite}
         />
       )}
     </div>
