@@ -98,7 +98,7 @@ export default function CircleCard({
   const isLiveMode = circle.mode === 'live';
 
   return (
-    <div className={`bg-white rounded-lg shadow-md border-2 overflow-hidden transition-all ${
+    <div className={`bg-white rounded-lg shadow-md border-2 overflow-hidden break-inside-avoid mb-4 transition-all ${
       isCollapsed ? '' : 'flex flex-col'
     } ${
       isOver

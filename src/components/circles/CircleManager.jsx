@@ -933,7 +933,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
             )}
 
             {/* Right side - Circles */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
               {/* Header with controls */}
               <div className="mb-4 flex-shrink-0">
                 <div className="flex items-center justify-between mb-3">
@@ -1093,7 +1093,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                 </div>
               ) : (
                 /* Full View */
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4 items-start">
+                <div className="columns-1 lg:columns-2 xl:columns-3 gap-4 pb-4 [column-fill:balance]">
                   {displayedCircles.map(circle => (
                     <CircleCard
                       key={circle.id}
