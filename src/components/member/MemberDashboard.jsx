@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { Heart, LogOut, User, Calendar, MessageSquare, Users, Edit2 } from 'lucide-react';
+import { Heart, LogOut, User, Calendar, MessageSquare, Users, Edit2, Mail } from 'lucide-react';
 import MemberProfileModal from './MemberProfileModal';
 import EditMyProfileModal from './EditMyProfileModal';
 import CircleChatView from './CircleChatView';
 import CircleEventsView from './CircleEventsView';
+import EmailCircleModal from '../circles/EmailCircleModal';
 
 export default function MemberDashboard({ user, userData, auth, db, storage, isAdmin = false, onSwitchToAdmin }) {
   const [activeTab, setActiveTab] = useState('circle');
@@ -17,6 +18,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
   const [selectedMember, setSelectedMember] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [showEmailCircleModal, setShowEmailCircleModal] = useState(false);
   const [myMemberProfile, setMyMemberProfile] = useState(null);
   const [actualWardId, setActualWardId] = useState(null);
 
@@ -460,7 +462,16 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
         {activeTab === 'circle' && (
           <div className="bg-white rounded-xl shadow-md border border-rose-100 p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Circle Members</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">Circle Members</h2>
+              <button
+                onClick={() => setShowEmailCircleModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Email My Circle
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {circleMembers.map(member => {
                 const age = calculateAge(member.dob);
@@ -553,6 +564,16 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             setShowEditProfileModal(false);
             loadDashboardData();
           }}
+        />
+      )}
+
+      {showEmailCircleModal && circleData && (
+        <EmailCircleModal
+          circle={circleData}
+          members={circleMembers}
+          stakeId={userData.stakeId}
+          wardId={actualWardId}
+          onClose={() => setShowEmailCircleModal(false)}
         />
       )}
     </div>

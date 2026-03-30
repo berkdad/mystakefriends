@@ -13,6 +13,7 @@ import QuickAddMemberModal from './components/member/QuickAddMemberModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import EmailAdminsModal from './components/EmailAdminsModal';
+import EmailAllModal from './components/circles/EmailAllModal';
 import TestReportsModal from './components/TestReportsModal';
 import SetupPassword from './components/SetupPassword';
 
@@ -639,6 +640,7 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [memberToTransfer, setMemberToTransfer] = useState(null);
   const [showEmailAdminsModal, setShowEmailAdminsModal] = useState(false);
+  const [showEmailAllMembersModal, setShowEmailAllMembersModal] = useState(false);
   // Get current user email
   const currentUserEmail = auth.currentUser?.email?.toLowerCase();
   const isSuperAdmin = currentUserEmail === 'jim@amtoxlab.com' || currentUserEmail === 'berkdad@gmail.com';
@@ -836,6 +838,14 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
               >
                 <Mail className="w-4 h-4" />
                 Email All Admins
+              </button>
+
+              <button
+                onClick={() => setShowEmailAllMembersModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                {selectedWard !== 'all' ? 'Email Ward' : 'Email All Members'}
               </button>
             {isSuperAdmin && (
               <>
@@ -1143,6 +1153,8 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
           member={selectedMember}
           stakeId={userData.stakeId}
           wardId={selectedMember.wardId}
+          callerRole={userData.role}
+          wards={wards}
           onClose={() => {
             setShowMemberModal(false);
             setSelectedMember(null);
@@ -1160,6 +1172,19 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
           stakeId={userData.stakeId}
           stakeName={stakeInfo?.name || 'Stake'}
           onClose={() => setShowEmailAdminsModal(false)}
+        />
+      )}
+
+      {/* Email All Members Modal */}
+      {showEmailAllMembersModal && (
+        <EmailAllModal
+          scope={selectedWard !== 'all' ? 'ward' : 'stake'}
+          stakeId={userData.stakeId}
+          wardId={selectedWard !== 'all' ? selectedWard : undefined}
+          stakeName={stakeInfo?.name}
+          wardName={selectedWard !== 'all' ? wards.find(w => w.id === selectedWard)?.name : undefined}
+          memberCount={filteredMembers.filter(m => m.email && m.email.trim() !== '').length}
+          onClose={() => setShowEmailAllMembersModal(false)}
         />
       )}
 
@@ -1255,6 +1280,7 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
   const [totalCircles, setTotalCircles] = useState(0);
   const [showWardAdminModal, setShowWardAdminModal] = useState(false);
   const [stakeInfo, setStakeInfo] = useState(null);
+  const [showEmailWardModal, setShowEmailWardModal] = useState(false);
 
   useEffect(() => {
     loadWardData();
@@ -1398,6 +1424,13 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
               >
                 <UserPlus className="w-4 h-4" />
                 Manage Ward Admins
+              </button>
+              <button
+                onClick={() => setShowEmailWardModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Email All
               </button>
               <button
                 onClick={handleLogout}
@@ -1567,6 +1600,18 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
             setShowWardAdminModal(false);
             await loadWardData();
           }}
+        />
+      )}
+      {/* Email All Ward Members Modal */}
+      {showEmailWardModal && (
+        <EmailAllModal
+          scope="ward"
+          stakeId={userData.stakeId}
+          wardId={userData.wardId}
+          stakeName={stakeInfo?.name}
+          wardName={wardInfo?.name}
+          memberCount={members.filter(m => m.email && m.email.trim() !== '').length}
+          onClose={() => setShowEmailWardModal(false)}
         />
       )}
     </div>
@@ -2249,7 +2294,7 @@ function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }
 }
 
 // Member Modal Component
-function MemberModal({ member, stakeId, wardId, onClose, onSave }) {
+function MemberModal({ member, stakeId, wardId, onClose, onSave, callerRole, wards }) {
   const [formData, setFormData] = useState({
     fullName: member?.fullName || '',
     email: member?.email || '',
@@ -2267,6 +2312,77 @@ function MemberModal({ member, stakeId, wardId, onClose, onSave }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profilePicPreview, setProfilePicPreview] = useState(member?.profilePicUrl || '');
+
+  // Auth/Role management state (for superAdmin/stakeAdmin editing existing members)
+  const canManageAuth = member && member.email && (callerRole === 'superAdmin' || callerRole === 'stakeAdmin');
+  const [authInfo, setAuthInfo] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authSaving, setAuthSaving] = useState(false);
+  const [authStatus, setAuthStatus] = useState('');
+  const [showAuthSection, setShowAuthSection] = useState(false);
+  const [authFormData, setAuthFormData] = useState({
+    role: '',
+    wardId: '',
+    stakeId: ''
+  });
+
+  const loadAuthInfo = async () => {
+    if (!canManageAuth) return;
+    setAuthLoading(true);
+    try {
+      const usersQuery = query(
+        collection(db, 'users'),
+        where('email', '==', member.email)
+      );
+      const usersSnapshot = await getDocs(usersQuery);
+      if (!usersSnapshot.empty) {
+        const userData = usersSnapshot.docs[0].data();
+        const userId = usersSnapshot.docs[0].id;
+        setAuthInfo({ id: userId, ...userData });
+        setAuthFormData({
+          role: userData.role || 'member',
+          wardId: userData.wardId || '',
+          stakeId: userData.stakeId || stakeId
+        });
+      } else {
+        setAuthInfo(null);
+        setAuthStatus('No auth account found for this email.');
+      }
+    } catch (error) {
+      console.error('Error loading auth info:', error);
+      setAuthStatus('Error loading auth info.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSaveAuth = async () => {
+    if (!authInfo) return;
+    setAuthSaving(true);
+    setAuthStatus('');
+    try {
+      await updateDoc(doc(db, 'users', authInfo.id), {
+        role: authFormData.role,
+        wardId: authFormData.wardId,
+        stakeId: authFormData.stakeId,
+        updatedAt: new Date().toISOString()
+      });
+      setAuthStatus('✓ Auth/role updated successfully!');
+      // Refresh auth info
+      setAuthInfo(prev => ({
+        ...prev,
+        role: authFormData.role,
+        wardId: authFormData.wardId,
+        stakeId: authFormData.stakeId
+      }));
+      setTimeout(() => setAuthStatus(''), 3000);
+    } catch (error) {
+      console.error('Error updating auth:', error);
+      setAuthStatus('✗ Error updating auth: ' + error.message);
+    } finally {
+      setAuthSaving(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     // Convert date picker format (YYYY-MM-DD) to MM/DD/YYYY
@@ -2491,6 +2607,97 @@ function MemberModal({ member, stakeId, wardId, onClose, onSave }) {
             />
           </div>
         </div>
+
+        {/* Auth/Role Management Section (superAdmin/stakeAdmin only) */}
+        {canManageAuth && (
+          <div className="mt-6 pt-4 border-t-2 border-purple-200">
+            <button
+              onClick={() => {
+                setShowAuthSection(!showAuthSection);
+                if (!showAuthSection && !authInfo) loadAuthInfo();
+              }}
+              className="flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900 mb-3"
+            >
+              <span>{showAuthSection ? '▼' : '▶'}</span>
+              Auth / Role Management
+            </button>
+
+            {showAuthSection && (
+              <div className="bg-purple-50 rounded-lg p-4 space-y-3">
+                {authLoading ? (
+                  <p className="text-sm text-purple-600">Loading auth info...</p>
+                ) : !authInfo ? (
+                  <p className="text-sm text-gray-600">No auth account found for {member.email}. This member has not been invited yet.</p>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Auth UID: <span className="font-mono">{authInfo.id}</span>
+                      {authInfo.hasLoggedIn ? ' • Has logged in' : ' • Never logged in'}
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Role</label>
+                        <select
+                          value={authFormData.role}
+                          onChange={(e) => setAuthFormData(prev => ({ ...prev, role: e.target.value }))}
+                          className="w-full px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="member">Member</option>
+                          <option value="wardAdmin">Ward Admin</option>
+                          <option value="stakeAdmin">Stake Admin</option>
+                          {callerRole === 'superAdmin' && <option value="superAdmin">Super Admin</option>}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Stake ID</label>
+                        <input
+                          type="text"
+                          value={authFormData.stakeId}
+                          onChange={(e) => setAuthFormData(prev => ({ ...prev, stakeId: e.target.value }))}
+                          className="w-full px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Ward ID</label>
+                        {wards && wards.length > 0 ? (
+                          <select
+                            value={authFormData.wardId}
+                            onChange={(e) => setAuthFormData(prev => ({ ...prev, wardId: e.target.value }))}
+                            className="w-full px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          >
+                            <option value="">-- Select Ward --</option>
+                            {wards.map(w => (
+                              <option key={w.id} value={w.id}>{w.name}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={authFormData.wardId}
+                            onChange={(e) => setAuthFormData(prev => ({ ...prev, wardId: e.target.value }))}
+                            className="w-full px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    {authStatus && (
+                      <p className={`text-sm ${authStatus.startsWith('✓') ? 'text-green-700' : 'text-red-700'}`}>
+                        {authStatus}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleSaveAuth}
+                      disabled={authSaving}
+                      className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                    >
+                      {authSaving ? 'Saving...' : 'Update Auth / Role'}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-3 pt-4 border-t">
           <button
