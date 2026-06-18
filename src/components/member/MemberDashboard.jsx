@@ -425,7 +425,11 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             <Users className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'circle' ? 'text-white' : 'text-rose-500'}`} />
             <h3 className="text-xl font-semibold mb-1">My Circle</h3>
             <p className={`text-sm ${activeTab === 'circle' ? 'text-rose-100' : 'text-gray-600'}`}>
-              {circleMembers.length} members
+              {circleMembers.length} member{circleMembers.length === 1 ? '' : 's'}
+              {(circleData.visitingAdmins || []).length > 0 &&
+                `, ${(circleData.visitingAdmins || []).length} visitor${
+                  (circleData.visitingAdmins || []).length === 1 ? '' : 's'
+                }`}
             </p>
           </button>
 
@@ -472,6 +476,16 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                 Email My Circle
               </button>
             </div>
+            {(circleData.visitingAdmins || []).length > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200">
+                <p className="text-sm text-green-800">
+                  <span className="font-semibold">Visiting now: </span>
+                  {(circleData.visitingAdmins || [])
+                    .map((v) => v.name)
+                    .join(', ')}
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {circleMembers.map(member => {
                 const age = calculateAge(member.dob);

@@ -9,6 +9,7 @@ import TransferMemberModal from './components/member/TransferMemberModal';
 import * as XLSX from 'xlsx';
 import CircleManager from './components/circles/CircleManager';
 import MemberDashboard from './components/member/MemberDashboard';
+import DropInCircles from './components/member/DropInCircles';
 import QuickAddMemberModal from './components/member/QuickAddMemberModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -1009,7 +1010,7 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Tiles */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <button
             onClick={() => setActiveTab('friends')}
             className={`p-6 rounded-xl shadow-md border-2 transition-all ${
@@ -1052,6 +1053,21 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
             <h3 className="text-xl font-semibold mb-1">Reports</h3>
             <p className={`text-sm ${activeTab === 'reports' ? 'text-amber-100' : 'text-gray-600'}`}>
               View analytics
+            </p>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('dropin')}
+            className={`p-6 rounded-xl shadow-md border-2 transition-all ${
+              activeTab === 'dropin'
+                ? 'bg-blue-500 border-blue-600 text-white'
+                : 'bg-white border-blue-100 text-gray-800 hover:border-blue-300'
+            }`}
+          >
+            <Heart className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'dropin' ? 'text-white' : 'text-blue-500'}`} />
+            <h3 className="text-xl font-semibold mb-1">Drop In</h3>
+            <p className={`text-sm ${activeTab === 'dropin' ? 'text-blue-100' : 'text-gray-600'}`}>
+              Visit a circle
             </p>
           </button>
         </div>
@@ -1102,6 +1118,20 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Select a Ward</h3>
             <p className="text-gray-600">Please select a specific ward from the "Viewing" dropdown to manage circles.</p>
           </div>
+        )}
+
+        {activeTab === 'dropin' && (
+          <DropInCircles
+            db={db}
+            storage={storage}
+            uid={user.uid}
+            role={userData.role}
+            stakeId={userData.stakeId}
+            wardId={userData.wardId}
+            email={user.email}
+            currentMemberId={user.uid}
+            currentMemberName={userData.displayName || userData.name || user.email}
+          />
         )}
 
         {activeTab === 'reports' && (
@@ -1447,7 +1477,7 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Tiles */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <button
             onClick={() => setActiveTab('friends')}
             className={`p-6 rounded-xl shadow-md border-2 transition-all ${
@@ -1492,6 +1522,21 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
               View analytics
             </p>
           </button>
+
+          <button
+            onClick={() => setActiveTab('dropin')}
+            className={`p-6 rounded-xl shadow-md border-2 transition-all ${
+              activeTab === 'dropin'
+                ? 'bg-blue-500 border-blue-600 text-white'
+                : 'bg-white border-blue-100 text-gray-800 hover:border-blue-300'
+            }`}
+          >
+            <Heart className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'dropin' ? 'text-white' : 'text-blue-500'}`} />
+            <h3 className="text-xl font-semibold mb-1">Drop In</h3>
+            <p className={`text-sm ${activeTab === 'dropin' ? 'text-blue-100' : 'text-gray-600'}`}>
+              Visit a circle
+            </p>
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -1526,6 +1571,20 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
             stakeId={userData.stakeId}
             wardId={userData.wardId}
             wardName={wardInfo?.name}
+          />
+        )}
+
+        {activeTab === 'dropin' && (
+          <DropInCircles
+            db={db}
+            storage={storage}
+            uid={user.uid}
+            role={userData.role}
+            stakeId={userData.stakeId}
+            wardId={userData.wardId}
+            email={user.email}
+            currentMemberId={user.uid}
+            currentMemberName={userData.displayName || userData.name || user.email}
           />
         )}
 
@@ -2326,6 +2385,39 @@ function MemberModal({ member, stakeId, wardId, onClose, onSave, callerRole, war
     stakeId: ''
   });
 
+  // Immediate password reset (no email link)
+  const [newPwd, setNewPwd] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwStatus, setPwStatus] = useState('');
+
+  const generatePwd = () => {
+    // Readable temp password the admin can speak aloud: Word + 3 digits + !
+    const words = ['Maple', 'River', 'Cedar', 'Harbor', 'Summit', 'Willow', 'Canyon', 'Meadow'];
+    const w = words[Math.floor(Math.random() * words.length)];
+    const n = Math.floor(100 + Math.random() * 900);
+    setNewPwd(`${w}${n}!`);
+    setPwStatus('');
+  };
+
+  const handleSetPassword = async () => {
+    if (!member?.email) return;
+    if (!newPwd || newPwd.length < 6) {
+      setPwStatus('✗ Password must be at least 6 characters.');
+      return;
+    }
+    setPwSaving(true);
+    setPwStatus('');
+    try {
+      const fn = httpsCallable(functions, 'adminSetUserPassword');
+      const res = await fn({ email: member.email, newPassword: newPwd });
+      setPwStatus('✓ ' + (res.data?.message || 'Password updated.'));
+    } catch (error) {
+      setPwStatus('✗ ' + (error.message || 'Failed to set password.'));
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   const loadAuthInfo = async () => {
     if (!canManageAuth) return;
     setAuthLoading(true);
@@ -2692,6 +2784,48 @@ function MemberModal({ member, stakeId, wardId, onClose, onSave, callerRole, war
                     >
                       {authSaving ? 'Saving...' : 'Update Auth / Role'}
                     </button>
+
+                    {/* Immediate password reset (no email link) */}
+                    <div className="mt-4 pt-4 border-t border-purple-200">
+                      <p className="text-xs font-semibold text-purple-700 mb-1">
+                        Reset Password
+                      </p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Changes {member.email}'s password immediately. No email
+                        or link is sent. Tell them the new password and have them
+                        change it after logging in.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={newPwd}
+                          onChange={(e) => setNewPwd(e.target.value)}
+                          placeholder="New password (min 6 chars)"
+                          autoComplete="off"
+                          className="flex-1 px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={generatePwd}
+                          className="px-3 py-2 text-sm border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                        >
+                          Generate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSetPassword}
+                          disabled={pwSaving || newPwd.length < 6}
+                          className="px-4 py-2 text-sm bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50"
+                        >
+                          {pwSaving ? 'Setting...' : 'Set Password Now'}
+                        </button>
+                      </div>
+                      {pwStatus && (
+                        <p className={`text-sm mt-2 ${pwStatus.startsWith('✓') ? 'text-green-700' : 'text-red-700'}`}>
+                          {pwStatus}
+                        </p>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
@@ -2720,6 +2854,95 @@ function MemberModal({ member, stakeId, wardId, onClose, onSave, callerRole, war
 }
 
 // SuperAdmin Dashboard Component (keeping original)
+function PasswordHelpCard() {
+  const [email, setEmail] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState('');
+
+  const generate = () => {
+    const words = ['Maple', 'River', 'Cedar', 'Harbor', 'Summit', 'Willow', 'Canyon', 'Meadow'];
+    const w = words[Math.floor(Math.random() * words.length)];
+    const n = Math.floor(100 + Math.random() * 900);
+    setPwd(`${w}${n}!`);
+    setStatus('');
+  };
+
+  const submit = async () => {
+    if (!email.trim()) {
+      setStatus('✗ Enter the member\'s email.');
+      return;
+    }
+    if (pwd.length < 6) {
+      setStatus('✗ Password must be at least 6 characters.');
+      return;
+    }
+    setSaving(true);
+    setStatus('');
+    try {
+      const fn = httpsCallable(functions, 'adminSetUserPassword');
+      const res = await fn({ email: email.trim(), newPassword: pwd });
+      setStatus('✓ ' + (res.data?.message || 'Password updated.'));
+    } catch (error) {
+      setStatus('✗ ' + (error.message || 'Failed to set password.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-md border border-purple-100 mb-8">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-800">Member Login Help</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Reset any member's password immediately. No email or link is sent.
+          Tell them the new password and have them change it after logging in.
+        </p>
+      </div>
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Member email"
+            autoComplete="off"
+            className="flex-1 px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+          <input
+            type="text"
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            placeholder="New password (min 6 chars)"
+            autoComplete="off"
+            className="flex-1 px-3 py-2 text-sm border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+          />
+          <button
+            type="button"
+            onClick={generate}
+            className="px-3 py-2 text-sm border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            Generate
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={saving || pwd.length < 6 || !email.trim()}
+            className="px-4 py-2 text-sm bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Setting...' : 'Set Password Now'}
+          </button>
+        </div>
+        {status && (
+          <p className={`text-sm mt-2 ${status.startsWith('✓') ? 'text-green-700' : 'text-red-700'}`}>
+            {status}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SuperAdminDashboard({ user }) {
   const [stakes, setStakes] = useState([]);
   const [showStakeModal, setShowStakeModal] = useState(false);
@@ -2846,6 +3069,8 @@ function SuperAdminDashboard({ user }) {
             </div>
           </div>
         </div>
+
+        <PasswordHelpCard />
 
         <div className="bg-white rounded-xl shadow-md border border-rose-100">
           <div className="p-6 border-b border-gray-200">
