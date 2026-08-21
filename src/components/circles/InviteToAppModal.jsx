@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, Smartphone } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { tr, trf } from '../../i18n/translations';
 
 export default function InviteToAppModal({ circle, members, stakeId, wardId, stakeName, wardName, onClose }) {
   const [sending, setSending] = useState(false);
@@ -11,12 +12,12 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
 
   const handleSendInvites = async () => {
     if (pendingMembers.length === 0) {
-      setStatus('No pending members to invite.');
+      setStatus(tr('No pending members to invite.'));
       return;
     }
 
     setSending(true);
-    setStatus('Sending invitations...');
+    setStatus(tr('Sending invitations...'));
 
     try {
       const functions = getFunctions();
@@ -33,16 +34,18 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
       });
 
       if (result.data.success) {
-        setStatus(`Successfully sent ${result.data.sent} invitation${result.data.sent !== 1 ? 's' : ''}!`);
+        setStatus(result.data.sent !== 1
+          ? trf('Successfully sent {0} invitations!', [result.data.sent])
+          : trf('Successfully sent {0} invitation!', [result.data.sent]));
         setTimeout(() => {
           onClose();
         }, 2000);
       } else {
-        setStatus('Error sending invitations. Please try again.');
+        setStatus(tr('Error sending invitations. Please try again.'));
       }
     } catch (error) {
       console.error('Error sending invitations:', error);
-      setStatus('Error sending invitations. Please try again.');
+      setStatus(tr('Error sending invitations. Please try again.'));
     } finally {
       setSending(false);
     }
@@ -55,7 +58,7 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Smartphone className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-bold text-gray-800">Invite Circle to App</h2>
+            <h2 className="text-xl font-bold text-gray-800">{tr('Invite Circle to App')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -68,24 +71,24 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <h3 className="font-semibold text-purple-900 mb-2">What this does:</h3>
+            <h3 className="font-semibold text-purple-900 mb-2">{tr('What this does:')}</h3>
             <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
-              <li>Sends invitation emails to all members who haven't logged in yet</li>
-              <li>Includes instructions to set up their account on the website</li>
-              <li>Provides links to download the iOS app (Android coming soon!)</li>
-              <li>Members must accept the invite and set their password on the web before using the app</li>
+              <li>{tr("Sends invitation emails to all members who haven't logged in yet")}</li>
+              <li>{tr('Includes instructions to set up their account on the website')}</li>
+              <li>{tr('Provides links to download the iOS app (Android coming soon!)')}</li>
+              <li>{tr('Members must accept the invite and set their password on the web before using the app')}</li>
             </ul>
           </div>
 
           {/* Members to invite */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Members to Invite ({pendingMembers.length})
+              {trf('Members to Invite ({0})', [pendingMembers.length])}
             </label>
             {pendingMembers.length === 0 ? (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-600">
-                  All members in this circle have already been invited and logged in!
+                  {tr('All members in this circle have already been invited and logged in!')}
                 </p>
               </div>
             ) : (
@@ -101,7 +104,7 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
                         <p className="text-xs text-gray-500">{member.email}</p>
                       </div>
                       <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">
-                        Pending
+                        {tr('Pending')}
                       </span>
                     </div>
                   ))}
@@ -114,11 +117,13 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
           {members.length !== pendingMembers.length && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Already Active ({members.length - pendingMembers.length})
+                {trf('Already Active ({0})', [members.length - pendingMembers.length])}
               </label>
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <p className="text-xs text-green-700">
-                  {members.length - pendingMembers.length} member{members.length - pendingMembers.length !== 1 ? 's' : ''} already logged in and won't receive an invitation.
+                  {members.length - pendingMembers.length !== 1
+                    ? trf("{0} members already logged in and won't receive an invitation.", [members.length - pendingMembers.length])
+                    : trf("{0} member already logged in and won't receive an invitation.", [members.length - pendingMembers.length])}
                 </p>
               </div>
             </div>
@@ -144,7 +149,7 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleSendInvites}
@@ -152,7 +157,11 @@ export default function InviteToAppModal({ circle, members, stakeId, wardId, sta
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
-            {sending ? 'Sending...' : `Send ${pendingMembers.length} Invitation${pendingMembers.length !== 1 ? 's' : ''}`}
+            {sending
+              ? tr('Sending...')
+              : (pendingMembers.length !== 1
+                ? trf('Send {0} Invitations', [pendingMembers.length])
+                : trf('Send {0} Invitation', [pendingMembers.length]))}
           </button>
         </div>
       </div>

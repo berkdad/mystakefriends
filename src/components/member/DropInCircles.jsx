@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { Hand, LogIn, LogOut, MessageSquare, Calendar, RefreshCw } from 'lucide-react';
 import {
+  roleCanDropIn,
   resolveScope,
   getCirclesInScopeDetailed,
   getActiveDropIn,
@@ -30,6 +31,7 @@ import {
 } from '../../services/dropInService';
 import CircleChatView from './CircleChatView';
 import CircleEventsView from './CircleEventsView';
+import { tr, trf } from '../../i18n/translations';
 
 export default function DropInCircles({
   db,
@@ -66,7 +68,7 @@ export default function DropInCircles({
       setCircles(list);
       setActive(act);
     } catch (e) {
-      setError('Could not load circles: ' + e.message);
+      setError(trf('Could not load circles: {0}', [e.message]));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ export default function DropInCircles({
       await dropIntoCircle(c);
       await load();
     } catch (e) {
-      alert('Could not drop in: ' + e.message);
+      alert(trf('Could not drop in: {0}', [e.message]));
     } finally {
       setBusyId(null);
     }
@@ -102,7 +104,7 @@ export default function DropInCircles({
       if (openCircle && openCircle.id === c.id) setOpenCircle(null);
       await load();
     } catch (e) {
-      alert('Could not leave: ' + e.message);
+      alert(trf('Could not leave: {0}', [e.message]));
     } finally {
       setBusyId(null);
     }
@@ -115,14 +117,14 @@ export default function DropInCircles({
       setOpenCircle(c);
       setOpenTab('chat');
     } catch (e) {
-      alert('Could not open circle: ' + e.message);
+      alert(trf('Could not open circle: {0}', [e.message]));
     }
   };
 
   if (!loading && scope === 'none') {
     return (
       <div className="p-6 text-gray-600">
-        Dropping in is available to stake and ward leadership.
+        {tr('Dropping in is available to stake and ward leadership.')}
       </div>
     );
   }
@@ -135,15 +137,15 @@ export default function DropInCircles({
           <div>
             <button
               onClick={() => setOpenCircle(null)}
-              className="text-sm text-rose-600 hover:underline"
+              className="text-sm text-primary-600 hover:underline"
             >
-              ← Back to circles
+              ← {tr('Back to circles')}
             </button>
             <h2 className="text-xl font-bold text-gray-800 mt-1">
               {openCircle.name}
             </h2>
             <p className="text-sm text-gray-500">
-              You're dropped in. Anything you post stays here.
+              {tr("You're dropped in. Anything you post stays here.")}
             </p>
           </div>
           <div className="flex gap-2">
@@ -151,21 +153,21 @@ export default function DropInCircles({
               onClick={() => setOpenTab('chat')}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                 openTab === 'chat'
-                  ? 'bg-rose-500 text-white'
+                  ? 'bg-primary-500 text-white'
                   : 'bg-gray-100 text-gray-700'
               }`}
             >
-              <MessageSquare className="w-4 h-4" /> Chat
+              <MessageSquare className="w-4 h-4" /> {tr('Chat')}
             </button>
             <button
               onClick={() => setOpenTab('events')}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                 openTab === 'events'
-                  ? 'bg-rose-500 text-white'
+                  ? 'bg-primary-500 text-white'
                   : 'bg-gray-100 text-gray-700'
               }`}
             >
-              <Calendar className="w-4 h-4" /> Activities
+              <Calendar className="w-4 h-4" /> {tr('Activities')}
             </button>
           </div>
         </div>
@@ -202,22 +204,22 @@ export default function DropInCircles({
       <div className="flex items-center justify-between">
         <p className="text-gray-600">
           {scope === 'ward'
-            ? 'Circles in your ward. Drop in to one at a time to say hello and participate.'
-            : 'Circles in your stake. Drop in to one at a time to say hello and participate.'}
+            ? tr('Circles in your ward. Drop in to one at a time to say hello and participate.')
+            : tr('Circles in your stake. Drop in to one at a time to say hello and participate.')}
         </p>
         <button
           onClick={load}
           className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
         >
-          <RefreshCw className="w-4 h-4" /> Refresh
+          <RefreshCw className="w-4 h-4" /> {tr('Refresh')}
         </button>
       </div>
 
-      {loading && <div className="p-6 text-gray-500">Loading circles…</div>}
+      {loading && <div className="p-6 text-gray-500">{tr('Loading circles…')}</div>}
       {error && <div className="p-6 text-red-600">{error}</div>}
 
       {!loading && !error && circles.length === 0 && (
-        <div className="p-6 text-gray-500">No circles found.</div>
+        <div className="p-6 text-gray-500">{tr('No circles found.')}</div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,14 +237,14 @@ export default function DropInCircles({
                 <h3 className="font-semibold text-gray-800">{c.name}</h3>
                 {activeHere && (
                   <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                    Dropped in
+                    {tr('Dropped in')}
                   </span>
                 )}
               </div>
 
               <p className="text-sm text-gray-700 mt-1">{c.wardName}</p>
               <p className="text-sm text-gray-700">
-                {c.captainName ? `Captain: ${c.captainName}` : 'No captain assigned'}
+                {c.captainName ? trf('Captain: {0}', [c.captainName]) : tr('No captain assigned')}
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 {circleCountLabel(memberCount, visitorCount)}
@@ -250,7 +252,7 @@ export default function DropInCircles({
 
               {(c.memberNames || []).length > 0 && (
                 <div className="mt-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-1">Members</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">{tr('Members')}</p>
                   <div className="grid grid-cols-3 gap-x-3 gap-y-0.5">
                     {c.memberNames.map((n, i) => (
                       <span
@@ -271,25 +273,25 @@ export default function DropInCircles({
                     <button
                       disabled={busy}
                       onClick={() => handleOpen(c)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-lg"
                     >
-                      <LogIn className="w-4 h-4" /> Open
+                      <LogIn className="w-4 h-4" /> {tr('Open')}
                     </button>
                     <button
                       disabled={busy}
                       onClick={() => handleLeave(c)}
                       className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
                     >
-                      <LogOut className="w-4 h-4" /> {busy ? 'Leaving…' : 'Leave'}
+                      <LogOut className="w-4 h-4" /> {busy ? tr('Leaving…') : tr('Leave')}
                     </button>
                   </>
                 ) : (
                   <button
                     disabled={busy}
                     onClick={() => handleDropIn(c)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600"
+                    className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                   >
-                    <Hand className="w-4 h-4" /> {busy ? 'Dropping in…' : 'Drop in'}
+                    <Hand className="w-4 h-4" /> {busy ? tr('Dropping in…') : tr('Drop in')}
                   </button>
                 )}
               </div>

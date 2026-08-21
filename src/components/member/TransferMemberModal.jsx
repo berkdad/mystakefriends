@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { doc, writeBatch, collection, query, where, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { X, ArrowRight, AlertCircle } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
 export default function TransferMemberModal({ member, currentWard, wards, stakeId, db, onClose, onComplete }) {
   const [targetWardId, setTargetWardId] = useState('');
@@ -9,11 +10,11 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
 
   const handleTransfer = async () => {
     if (!targetWardId || targetWardId === currentWard.id) {
-      setError('Please select a different ward');
+      setError(tr('Please select a different ward'));
       return;
     }
 
-    if (!confirm(`Transfer ${member.fullName} from ${currentWard.name} to ${wards.find(w => w.id === targetWardId)?.name}?\n\nThis will:\n- Move their member record\n- Remove them from any circles in the current ward\n- Update their user account (if they have one)`)) {
+    if (!confirm(trf('Transfer {0} from {1} to {2}?\n\nThis will:\n- Move their member record\n- Remove them from any circles in the current ward\n- Update their user account (if they have one)', [member.fullName, currentWard.name, wards.find(w => w.id === targetWardId)?.name]))) {
       return;
     }
 
@@ -76,11 +77,11 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
       // 5. Delete from old ward
       await deleteDoc(doc(db, 'stakes', stakeId, 'wards', currentWard.id, 'members', member.id));
 
-      alert(`Successfully transferred ${member.fullName} to ${wards.find(w => w.id === targetWardId)?.name}`);
+      alert(trf('Successfully transferred {0} to {1}', [member.fullName, wards.find(w => w.id === targetWardId)?.name]));
       onComplete();
     } catch (err) {
       console.error('Error transferring member:', err);
-      setError(`Failed to transfer member: ${err.message}`);
+      setError(trf('Failed to transfer member: {0}', [err.message]));
     } finally {
       setTransferring(false);
     }
@@ -92,7 +93,7 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Transfer Member</h2>
+          <h2 className="text-xl font-bold text-gray-800">{tr('Transfer Member')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -110,30 +111,30 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
 
         <div className="mb-6">
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <p className="text-sm text-gray-600 mb-1">Member</p>
+            <p className="text-sm text-gray-600 mb-1">{tr('Member')}</p>
             <p className="font-semibold text-gray-800">{member.fullName}</p>
             {member.email && <p className="text-sm text-gray-600">{member.email}</p>}
           </div>
 
           <div className="flex items-center gap-4 mb-4">
             <div className="flex-1 bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-xs text-blue-600 mb-1">Current Ward</p>
+              <p className="text-xs text-blue-600 mb-1">{tr('Current Ward')}</p>
               <p className="font-medium text-blue-800">{currentWard.name}</p>
             </div>
 
             <ArrowRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
 
             <div className="flex-1 bg-green-50 rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-green-600 mb-1">New Ward</p>
+              <p className="text-xs text-green-600 mb-1">{tr('New Ward')}</p>
               <p className="font-medium text-green-800">
-                {targetWard ? targetWard.name : 'Select...'}
+                {targetWard ? targetWard.name : tr('Select...')}
               </p>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Transfer to Ward
+              {tr('Transfer to Ward')}
             </label>
             <select
               value={targetWardId}
@@ -141,7 +142,7 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={transferring}
             >
-              <option value="">Select a ward...</option>
+              <option value="">{tr('Select a ward...')}</option>
               {wards
                 .filter(w => w.id !== currentWard.id)
                 .map(ward => (
@@ -155,8 +156,7 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
 
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
           <p className="text-sm text-amber-800">
-            <strong>Note:</strong> This will remove the member from any circles in {currentWard.name}.
-            They will need to be added to a circle in the new ward.
+            <strong>{tr('Note:')}</strong> {trf('This will remove the member from any circles in {0}. They will need to be added to a circle in the new ward.', [currentWard.name])}
           </p>
         </div>
 
@@ -166,14 +166,14 @@ export default function TransferMemberModal({ member, currentWard, wards, stakeI
             disabled={transferring}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleTransfer}
             disabled={!targetWardId || transferring}
             className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {transferring ? 'Transferring...' : 'Transfer Member'}
+            {transferring ? tr('Transferring...') : tr('Transfer Member')}
           </button>
         </div>
       </div>

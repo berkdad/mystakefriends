@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Camera, Save } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { tr, trf } from '../../i18n/translations';
 
 export default function EditMyProfileModal({ member, stakeId, wardId, db, storage, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -55,12 +56,12 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      alert(tr('Please upload an image file'));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be less than 5MB');
+      alert(tr('Image must be less than 5MB'));
       return;
     }
 
@@ -73,10 +74,10 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
       setFormData(prev => ({ ...prev, profilePicUrl: downloadUrl }));
       setProfilePicPreview(downloadUrl);
 
-      alert('Profile picture uploaded successfully!');
+      alert(tr('Profile picture uploaded successfully!'));
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      alert('Error uploading picture. Please try again.');
+      alert(tr('Error uploading picture. Please try again.'));
     } finally {
       setUploading(false);
     }
@@ -92,7 +93,7 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
       onSave();
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Error saving profile. Please try again.');
+      alert(tr('Error saving profile. Please try again.'));
     } finally {
       setSaving(false);
     }
@@ -103,7 +104,7 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
       <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full my-8 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-gray-800">Edit My Profile</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{tr('Edit My Profile')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -119,15 +120,15 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
               {profilePicPreview ? (
                 <img
                   src={profilePicPreview}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-rose-200"
+                  alt={tr('Profile')}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-primary-200"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-rose-100 flex items-center justify-center border-4 border-rose-200">
-                  <span className="text-4xl text-rose-400">{member.fullName?.[0] || '?'}</span>
+                <div className="w-32 h-32 rounded-full bg-primary-100 flex items-center justify-center border-4 border-primary-200">
+                  <span className="text-4xl text-primary-400">{member.fullName?.[0] || '?'}</span>
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 bg-rose-500 text-white p-3 rounded-full cursor-pointer hover:bg-rose-600 transition-colors">
+              <label className="absolute bottom-0 right-0 bg-primary-500 text-white p-3 rounded-full cursor-pointer hover:bg-primary-600 transition-colors">
                 <Camera className="w-5 h-5" />
                 <input
                   type="file"
@@ -138,12 +139,12 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
                 />
               </label>
             </div>
-            {uploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
-            <p className="text-xs text-gray-500 mt-2">Click camera icon to upload</p>
+            {uploading && <p className="text-sm text-gray-500 mt-2">{tr('Uploading...')}</p>}
+            <p className="text-xs text-gray-500 mt-2">{tr('Click camera icon to upload')}</p>
             <div className="mt-4 text-center">
               <p className="text-lg font-semibold text-gray-800">{member.fullName}</p>
               <p className="text-sm text-gray-500">{member.email}</p>
-              <p className="text-xs text-amber-600 mt-1">Name and email cannot be changed</p>
+              <p className="text-xs text-amber-600 mt-1">{tr('Name and email cannot be changed')}</p>
             </div>
           </div>
 
@@ -151,41 +152,41 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
           <div className="space-y-8">
             {/* Basic Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Basic Information</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Basic Information')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Name/Nickname</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Preferred Name/Nickname')}</label>
                   <input
                     type="text"
                     value={formData.preferredName}
                     onChange={(e) => handleChange('preferredName', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="What you like to be called"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('What you like to be called')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Phone')}</label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Address')}</label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleChange('address', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Date of Birth')}</label>
                   <input
                     type="date"
                     value={
@@ -197,44 +198,44 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
                         : formData.dob
                     }
                     onChange={(e) => handleChange('dob', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Marital Status')}</label>
                   <select
                     value={formData.maritalStatus}
                     onChange={(e) => handleChange('maritalStatus', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
-                    <option value="">Select...</option>
-                    <option value="single">Single</option>
-                    <option value="married">Married</option>
-                    <option value="widowed">Widowed</option>
-                    <option value="divorced">Divorced</option>
+                    <option value="">{tr('Select...')}</option>
+                    <option value="single">{tr('Single')}</option>
+                    <option value="married">{tr('Married')}</option>
+                    <option value="widowed">{tr('Widowed')}</option>
+                    <option value="divorced">{tr('Divorced')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cultural Background</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Cultural Background')}</label>
                   <input
                     type="text"
                     value={formData.ethnicity}
                     onChange={(e) => handleChange('ethnicity', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="Optional"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('Optional')}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">About Me</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('About Me')}</label>
                   <textarea
                     value={formData.aboutMe}
                     onChange={(e) => handleChange('aboutMe', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="Tell others a little about yourself..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('Tell others a little about yourself...')}
                   />
                 </div>
               </div>
@@ -242,20 +243,20 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
 
             {/* Family Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Family Information</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Family Information')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Spouse Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Spouse Name')}</label>
                   <input
                     type="text"
                     value={formData.spouseName}
                     onChange={(e) => handleChange('spouseName', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Anniversary</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Anniversary')}</label>
                   <input
                     type="date"
                     value={
@@ -267,29 +268,29 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
                         : formData.anniversary
                     }
                     onChange={(e) => handleChange('anniversary', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Number of Children')}</label>
                   <input
                     type="number"
                     value={formData.numChildren}
                     onChange={(e) => handleChange('numChildren', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     min="0"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Children's Names</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr("Children's Names")}</label>
                   <input
                     type="text"
                     value={formData.childrenNames}
                     onChange={(e) => handleChange('childrenNames', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., John, Mary, David"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('e.g., John, Mary, David')}
                   />
                 </div>
               </div>
@@ -297,36 +298,36 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
 
             {/* Professional & Education */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Professional & Education</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Professional & Education')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Occupation')}</label>
                   <input
                     type="text"
                     value={formData.occupation}
                     onChange={(e) => handleChange('occupation', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Employer</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Employer')}</label>
                   <input
                     type="text"
                     value={formData.employer}
                     onChange={(e) => handleChange('employer', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Education</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Education')}</label>
                   <input
                     type="text"
                     value={formData.education}
                     onChange={(e) => handleChange('education', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., Bachelor's in Computer Science, University of Nevada"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr("e.g., Bachelor's in Computer Science, University of Nevada")}
                   />
                 </div>
               </div>
@@ -334,58 +335,58 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
 
             {/* Hobbies & Interests */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Hobbies & Interests</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Hobbies & Interests')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hobbies</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Hobbies')}</label>
                   <input
                     type="text"
                     value={formData.hobbies}
                     onChange={(e) => handleChange('hobbies', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., Hiking, Photography, Cooking"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('e.g., Hiking, Photography, Cooking')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Interests</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Interests')}</label>
                   <input
                     type="text"
                     value={formData.interests}
                     onChange={(e) => handleChange('interests', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., Travel, History, Technology"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('e.g., Travel, History, Technology')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Talents</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Talents')}</label>
                   <input
                     type="text"
                     value={formData.talents}
                     onChange={(e) => handleChange('talents', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., Piano, Public Speaking, Gardening"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('e.g., Piano, Public Speaking, Gardening')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Favorite Books</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Favorite Books')}</label>
                   <input
                     type="text"
                     value={formData.favoriteBooks}
                     onChange={(e) => handleChange('favoriteBooks', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Favorite Music</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Favorite Music')}</label>
                   <input
                     type="text"
                     value={formData.favoriteMusic}
                     onChange={(e) => handleChange('favoriteMusic', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -393,49 +394,49 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
 
             {/* Spiritual Journey */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Spiritual Journey</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Spiritual Journey')}</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">My Spiritual Journey</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('My Spiritual Journey')}</label>
                   <textarea
                     value={formData.spiritualJourney}
                     onChange={(e) => handleChange('spiritualJourney', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="Share your conversion story or spiritual experiences..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('Share your conversion story or spiritual experiences...')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Favorite Scripture</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Favorite Scripture')}</label>
                   <textarea
                     value={formData.favoriteScripture}
                     onChange={(e) => handleChange('favoriteScripture', e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="e.g., Alma 32:21"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('e.g., Alma 32:21')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Testimony</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Testimony')}</label>
                   <textarea
                     value={formData.testimony}
                     onChange={(e) => handleChange('testimony', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="Share your testimony..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('Share your testimony...')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Callings</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Current Callings')}</label>
                   <input
                     type="text"
                     value={formData.callings}
                     onChange={(e) => handleChange('callings', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                    placeholder="e.g., Relief Society Teacher"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder={tr('e.g., Relief Society Teacher')}
                   />
                 </div>
               </div>
@@ -443,38 +444,38 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
 
             {/* Goals & Aspirations */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Goals & Aspirations</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">{tr('Goals & Aspirations')}</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Personal Goals</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Personal Goals')}</label>
                   <textarea
                     value={formData.personalGoals}
                     onChange={(e) => handleChange('personalGoals', e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="What are you working towards personally?"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('What are you working towards personally?')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Family Goals</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Family Goals')}</label>
                   <textarea
                     value={formData.familyGoals}
                     onChange={(e) => handleChange('familyGoals', e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="Goals for your family..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('Goals for your family...')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Spiritual Goals</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Spiritual Goals')}</label>
                   <textarea
                     value={formData.spiritualGoals}
                     onChange={(e) => handleChange('spiritualGoals', e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                    placeholder="Your spiritual aspirations..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder={tr('Your spiritual aspirations...')}
                   />
                 </div>
               </div>
@@ -488,15 +489,15 @@ export default function EditMyProfileModal({ member, stakeId, wardId, db, storag
             onClick={onClose}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving || uploading}
-            className="flex items-center gap-2 px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Profile'}
+            {saving ? tr('Saving...') : tr('Save Profile')}
           </button>
         </div>
       </div>

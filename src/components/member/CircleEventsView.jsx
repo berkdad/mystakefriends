@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Calendar, Plus, MapPin, Clock, Users, Trash2, Edit2, ImageIcon, X } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
 export default function CircleEventsView({ db, storage, stakeId, wardId, circleId, currentMemberId, currentMemberName, circleMembers }) {
   const [events, setEvents] = useState([]);
@@ -43,19 +44,19 @@ export default function CircleEventsView({ db, storage, stakeId, wardId, circleI
     if (!timeString) return '';
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm = hour >= 12 ? tr('PM') : tr('AM');
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
   const handleDeleteEvent = async (eventId) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
+    if (!confirm(tr('Are you sure you want to delete this event?'))) return;
 
     try {
       await deleteDoc(doc(db, 'stakes', stakeId, 'wards', wardId, 'circles', circleId, 'events', eventId));
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert('Error deleting event. Please try again.');
+      alert(tr('Error deleting event. Please try again.'));
     }
   };
 
@@ -63,23 +64,23 @@ export default function CircleEventsView({ db, storage, stakeId, wardId, circleI
     <div className="bg-white rounded-xl shadow-md border border-green-100 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">Upcoming Events</h2>
-          <p className="text-sm text-gray-600">{events.length} scheduled</p>
+          <h2 className="text-xl font-semibold text-gray-800">{tr('Upcoming Events')}</h2>
+          <p className="text-sm text-gray-600">{trf('{0} scheduled', [events.length])}</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Create Event
+          {tr('Create Event')}
         </button>
       </div>
 
       {events.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="mb-2">No upcoming events</p>
-          <p className="text-sm">Create an event to get started!</p>
+          <p className="mb-2">{tr('No upcoming events')}</p>
+          <p className="text-sm">{tr('Create an event to get started!')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -194,7 +195,7 @@ function EventCard({ event, circleMembers, currentMemberId, onEdit, onDelete, fo
         {organizer && (
           <div className="flex items-center gap-2 text-sm text-gray-600 mt-3 pt-3 border-t">
             <Users className="w-4 h-4" />
-            <span>Organized by {organizer.fullName}</span>
+            <span>{trf('Organized by {0}', [organizer.fullName])}</span>
           </div>
         )}
       </div>
@@ -219,12 +220,12 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      alert(tr('Please upload an image file'));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be less than 5MB');
+      alert(tr('Image must be less than 5MB'));
       return;
     }
 
@@ -240,7 +241,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
       setFormData(prev => ({ ...prev, imageUrl: downloadUrl }));
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image. Please try again.');
+      alert(tr('Error uploading image. Please try again.'));
     } finally {
       setUploading(false);
     }
@@ -248,7 +249,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
 
   const handleCreate = async () => {
     if (!formData.title.trim() || !formData.eventDate) {
-      alert('Please fill in title and date');
+      alert(tr('Please fill in title and date'));
       return;
     }
 
@@ -269,7 +270,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
       onClose();
     } catch (error) {
       console.error('Error creating event:', error);
-      alert('Error creating event. Please try again.');
+      alert(tr('Error creating event. Please try again.'));
     } finally {
       setCreating(false);
     }
@@ -279,7 +280,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Create Event</h2>
+          <h2 className="text-xl font-bold text-gray-800">{tr('Create Event')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -293,7 +294,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
             <div className="relative">
               <img
                 src={formData.imageUrl}
-                alt="Event"
+                alt={tr('Event')}
                 className="w-full h-48 object-cover rounded-lg"
               />
               <button
@@ -307,10 +308,10 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
 
           {!formData.imageUrl && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Event Image (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{tr('Event Image (Optional)')}</label>
               <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 cursor-pointer transition-colors">
                 <ImageIcon className="w-8 h-8 text-gray-400" />
-                <span className="text-sm text-gray-600">Click to upload image</span>
+                <span className="text-sm text-gray-600">{tr('Click to upload image')}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -319,35 +320,35 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
                   disabled={uploading}
                 />
               </label>
-              {uploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
+              {uploading && <p className="text-sm text-gray-500 mt-2">{tr('Uploading...')}</p>}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Event Title *')}</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., Game Night"
+              placeholder={tr('e.g., Game Night')}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Description')}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-              placeholder="Tell us about the event..."
+              placeholder={tr('Tell us about the event...')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Date *')}</label>
               <input
                 type="date"
                 value={formData.eventDate}
@@ -358,7 +359,7 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Time')}</label>
               <input
                 type="time"
                 value={formData.eventTime}
@@ -369,13 +370,13 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Location')}</label>
             <input
               type="text"
               value={formData.location}
               onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., Smith's Home or 123 Main St"
+              placeholder={tr("e.g., Smith's Home or 123 Main St")}
             />
           </div>
         </div>
@@ -385,14 +386,14 @@ function CreateEventModal({ db, storage, stakeId, wardId, circleId, currentMembe
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleCreate}
             disabled={creating || uploading || !formData.title.trim() || !formData.eventDate}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
           >
-            {creating ? 'Creating...' : 'Create Event'}
+            {creating ? tr('Creating...') : tr('Create Event')}
           </button>
         </div>
       </div>
@@ -412,7 +413,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
 
   const handleUpdate = async () => {
     if (!formData.title.trim() || !formData.eventDate) {
-      alert('Please fill in title and date');
+      alert(tr('Please fill in title and date'));
       return;
     }
 
@@ -431,7 +432,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
       onClose();
     } catch (error) {
       console.error('Error updating event:', error);
-      alert('Error updating event. Please try again.');
+      alert(tr('Error updating event. Please try again.'));
     } finally {
       setUpdating(false);
     }
@@ -441,7 +442,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Edit Event</h2>
+          <h2 className="text-xl font-bold text-gray-800">{tr('Edit Event')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -452,7 +453,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Event Title *')}</label>
             <input
               type="text"
               value={formData.title}
@@ -462,7 +463,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Description')}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -473,7 +474,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Date *')}</label>
               <input
                 type="date"
                 value={formData.eventDate}
@@ -484,7 +485,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Time')}</label>
               <input
                 type="time"
                 value={formData.eventTime}
@@ -495,7 +496,7 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Location')}</label>
             <input
               type="text"
               value={formData.location}
@@ -510,14 +511,14 @@ function EditEventModal({ db, stakeId, wardId, circleId, event, onClose }) {
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleUpdate}
             disabled={updating || !formData.title.trim() || !formData.eventDate}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
           >
-            {updating ? 'Updating...' : 'Update Event'}
+            {updating ? tr('Updating...') : tr('Update Event')}
           </button>
         </div>
       </div>

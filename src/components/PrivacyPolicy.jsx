@@ -3,12 +3,12 @@ import { Heart, Shield, Lock, Eye, Database, Mail } from 'lucide-react';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-rose-100">
+      <header className="bg-white shadow-sm border-b border-primary-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-3">
-            <Heart className="w-8 h-8 text-rose-500" />
+            <Heart className="w-8 h-8 text-primary-500" />
             <div>
               <h1 className="text-2xl font-bold text-gray-800">My Stake Friends</h1>
               <p className="text-sm text-gray-500">Privacy Policy</p>
@@ -19,11 +19,11 @@ export default function PrivacyPolicy() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-md border border-rose-100 p-8">
+        <div className="bg-white rounded-xl shadow-md border border-primary-100 p-8">
           {/* Introduction */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-6 h-6 text-rose-500" />
+              <Shield className="w-6 h-6 text-primary-500" />
               <h2 className="text-2xl font-bold text-gray-800">Privacy Policy</h2>
             </div>
             <p className="text-gray-600 mb-2">
@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
           {/* Information We Collect */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Database className="w-5 h-5 text-rose-500" />
+              <Database className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">1. Information We Collect</h3>
             </div>
 
@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
           {/* How We Use Your Information */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Eye className="w-5 h-5 text-rose-500" />
+              <Eye className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">2. How We Use Your Information</h3>
             </div>
 
@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
           {/* Information Sharing */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Lock className="w-5 h-5 text-rose-500" />
+              <Lock className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">3. Information Sharing and Disclosure</h3>
             </div>
 
@@ -150,7 +150,7 @@ export default function PrivacyPolicy() {
           {/* Data Security */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-5 h-5 text-rose-500" />
+              <Shield className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">4. Data Security</h3>
             </div>
 
@@ -176,7 +176,7 @@ export default function PrivacyPolicy() {
           {/* Your Rights */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Eye className="w-5 h-5 text-rose-500" />
+              <Eye className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">5. Your Rights and Choices</h3>
             </div>
 
@@ -199,7 +199,7 @@ export default function PrivacyPolicy() {
           {/* Data Retention */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Database className="w-5 h-5 text-rose-500" />
+              <Database className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">6. Data Retention</h3>
             </div>
 
@@ -216,7 +216,7 @@ export default function PrivacyPolicy() {
           {/* Children's Privacy */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-5 h-5 text-rose-500" />
+              <Shield className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">7. Children's Privacy</h3>
             </div>
 
@@ -233,7 +233,7 @@ export default function PrivacyPolicy() {
           {/* Changes to Privacy Policy */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Eye className="w-5 h-5 text-rose-500" />
+              <Eye className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">8. Changes to This Privacy Policy</h3>
             </div>
 
@@ -250,7 +250,7 @@ export default function PrivacyPolicy() {
           {/* Contact Information */}
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Mail className="w-5 h-5 text-rose-500" />
+              <Mail className="w-5 h-5 text-primary-500" />
               <h3 className="text-xl font-semibold text-gray-800">9. Contact Us</h3>
             </div>
 
@@ -259,7 +259,7 @@ export default function PrivacyPolicy() {
                 If you have any questions about this Privacy Policy or our data practices,
                 please contact us at:
               </p>
-              <div className="bg-rose-50 p-4 rounded-lg">
+              <div className="bg-primary-50 p-4 rounded-lg">
                 <p className="text-gray-800 font-medium">My Stake Friends</p>
                 <p className="text-gray-600">Email: privacy@mystakefriends.com</p>
               </div>

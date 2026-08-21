@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Crown, ChevronRight, PlayCircle, PauseCircle } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
 export default function CompactCircleCard({ circle, members, captain, onClick }) {
   const isEditMode = circle.mode === 'edit';
@@ -13,7 +14,7 @@ export default function CompactCircleCard({ circle, members, captain, onClick })
           ? 'border-yellow-400 hover:border-yellow-500 hover:bg-yellow-50'
           : isLiveMode
           ? 'border-green-500 hover:border-green-600 hover:bg-green-50'
-          : 'border-gray-200 hover:border-rose-300 hover:bg-rose-50'
+          : 'border-gray-200 hover:border-primary-300 hover:bg-primary-50'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -25,14 +26,14 @@ export default function CompactCircleCard({ circle, members, captain, onClick })
               ? 'bg-yellow-100'
               : isLiveMode
               ? 'bg-green-100'
-              : 'bg-rose-100'
+              : 'bg-primary-100'
           }`}>
             {isEditMode ? (
               <PauseCircle className="w-4 h-4 text-yellow-600" />
             ) : isLiveMode ? (
               <PlayCircle className="w-4 h-4 text-green-600" />
             ) : (
-              <Users className="w-4 h-4 text-rose-500" />
+              <Users className="w-4 h-4 text-primary-500" />
             )}
           </div>
 
@@ -42,7 +43,7 @@ export default function CompactCircleCard({ circle, members, captain, onClick })
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                {members.length} member{members.length !== 1 ? 's' : ''}
+                {members.length !== 1 ? trf('{0} members', [members.length]) : trf('{0} member', [members.length])}
               </span>
               {captain && (
                 <>

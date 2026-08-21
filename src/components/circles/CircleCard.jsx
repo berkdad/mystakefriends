@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Edit2, Trash2, Mail, Crown, Users, Plus, MoreVertical, Send, PlayCircle, PauseCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import DraggableMember from './DraggableMember';
+import { tr, trf } from '../../i18n/translations';
 
 export default function CircleCard({
   circle,
@@ -42,7 +43,7 @@ export default function CircleCard({
   const menuItems = [
     {
       icon: Plus,
-      label: 'Add Members',
+      label: tr('Add Members'),
       onClick: () => {
         setShowMenu(false);
         onAddMembers();
@@ -52,7 +53,7 @@ export default function CircleCard({
     },
     {
       icon: Edit2,
-      label: 'Rename Circle',
+      label: tr('Rename Circle'),
       onClick: () => {
         setShowMenu(false);
         setIsEditingName(true);
@@ -62,7 +63,7 @@ export default function CircleCard({
     },
     {
       icon: Mail,
-      label: 'Email Circle',
+      label: tr('Email Circle'),
       onClick: () => {
         setShowMenu(false);
         onEmail();
@@ -73,7 +74,7 @@ export default function CircleCard({
     },
     {
       icon: Send,
-      label: 'Invite to App',
+      label: tr('Invite to App'),
       onClick: () => {
         setShowMenu(false);
         onInviteToApp();
@@ -84,7 +85,7 @@ export default function CircleCard({
     },
     {
       icon: Trash2,
-      label: 'Delete Circle',
+      label: tr('Delete Circle'),
       onClick: () => {
         setShowMenu(false);
         onDelete();
@@ -102,7 +103,7 @@ export default function CircleCard({
       isCollapsed ? '' : 'flex flex-col'
     } ${
       isOver
-        ? 'border-rose-400 bg-rose-50 shadow-xl'
+        ? 'border-primary-400 bg-primary-50 shadow-xl'
         : isEditMode
         ? 'border-yellow-400'
         : isLiveMode
@@ -117,7 +118,7 @@ export default function CircleCard({
           ? 'bg-gradient-to-r from-yellow-100 to-yellow-200'
           : isLiveMode
           ? 'bg-gradient-to-r from-green-100 to-green-200'
-          : 'bg-gradient-to-r from-rose-50 to-amber-50'
+          : 'bg-gradient-to-r from-primary-50 to-accent-50'
       }`}>
         <div className="flex items-center justify-between mb-2">
           {isEditingName ? (
@@ -127,12 +128,12 @@ export default function CircleCard({
               onChange={(e) => setEditedName(e.target.value)}
               onBlur={handleSaveName}
               onKeyPress={(e) => e.key === 'Enter' && handleSaveName()}
-              className="flex-1 px-2 py-1 border border-rose-300 rounded focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="flex-1 px-2 py-1 border border-primary-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               autoFocus
             />
           ) : (
             <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <Users className="w-5 h-5 text-rose-500" />
+              <Users className="w-5 h-5 text-primary-500" />
               {circle.name}
             </h3>
           )}
@@ -143,7 +144,7 @@ export default function CircleCard({
               <button
                 onClick={onToggleCollapse}
                 className="p-1.5 text-gray-600 hover:bg-white rounded transition-colors"
-                title={isCollapsed ? "Expand circle" : "Collapse circle"}
+                title={isCollapsed ? tr('Expand circle') : tr('Collapse circle')}
               >
                 {isCollapsed ? (
                   <ChevronDown className="w-5 h-5" />
@@ -163,20 +164,20 @@ export default function CircleCard({
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-gray-400 text-white hover:bg-gray-500'
               }`}
-              title={isEditMode ? "Click to go Live and send notifications" : "Click to Edit mode"}
+              title={isEditMode ? tr('Click to go Live and send notifications') : tr('Click to Edit mode')}
             >
               {isEditMode ? (
                 <>
                   <PauseCircle className="w-4 h-4" />
-                  <span>Edit Mode</span>
+                  <span>{tr('Edit Mode')}</span>
                 </>
               ) : isLiveMode ? (
                 <>
                   <PlayCircle className="w-4 h-4" />
-                  <span>Live</span>
+                  <span>{tr('Live')}</span>
                 </>
               ) : (
-                <span>Unknown</span>
+                <span>{tr('Unknown')}</span>
               )}
             </button>
 
@@ -184,7 +185,7 @@ export default function CircleCard({
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-1.5 text-gray-600 hover:bg-white rounded transition-colors"
-                title="Circle options"
+                title={tr('Circle options')}
               >
                 <MoreVertical className="w-5 h-5" />
               </button>
@@ -223,8 +224,8 @@ export default function CircleCard({
         </div>
 
         <p className="text-sm text-gray-600">
-          {members.length} member{members.length !== 1 ? 's' : ''}
-          {captain && <span className="ml-2 text-rose-600">• Captain: {captain.fullName}</span>}
+          {members.length !== 1 ? trf('{0} members', [members.length]) : trf('{0} member', [members.length])}
+          {captain && <span className="ml-2 text-primary-600">{trf('• Captain: {0}', [captain.fullName])}</span>}
         </p>
       </div>
 
@@ -234,8 +235,8 @@ export default function CircleCard({
           {members.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
               <Users className="w-12 h-12 mb-2" />
-              <p className="text-sm">Drag members here</p>
-              <p className="text-xs mt-1">or use menu to add</p>
+              <p className="text-sm">{tr('Drag members here')}</p>
+              <p className="text-xs mt-1">{tr('or use menu to add')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -244,7 +245,7 @@ export default function CircleCard({
                  <div className="mb-4">
                    <div className="flex items-center gap-2 mb-2">
                      <Crown className="w-4 h-4 text-amber-500" />
-                     <span className="text-xs font-semibold text-gray-600 uppercase">Captain</span>
+                     <span className="text-xs font-semibold text-gray-600 uppercase">{tr('Captain')}</span>
                    </div>
                    <DraggableMember
                      key={captain.id}
@@ -263,7 +264,7 @@ export default function CircleCard({
                   {captain && (
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="w-4 h-4 text-gray-400" />
-                      <span className="text-xs font-semibold text-gray-600 uppercase">Members</span>
+                      <span className="text-xs font-semibold text-gray-600 uppercase">{tr('Members')}</span>
                     </div>
                   )}
 

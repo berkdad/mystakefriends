@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Send } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { tr, trf } from '../../i18n/translations';
 
 export default function EmailCircleModal({ circle, members, stakeId, wardId, onClose }) {
   const auth = getAuth();
@@ -9,7 +10,7 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
 
   const [formData, setFormData] = useState({
     from: currentUser?.email || '',
-    subject: `Message from ${circle.name}`,
+    subject: trf('Message from {0}', [circle.name]),
     message: ''
   });
   const [sending, setSending] = useState(false);
@@ -19,17 +20,17 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
 
   const handleSend = async () => {
     if (!formData.message.trim()) {
-      setStatus('Please enter a message');
+      setStatus(tr('Please enter a message'));
       return;
     }
 
     if (membersWithEmail.length === 0) {
-      setStatus('No members in this circle have email addresses');
+      setStatus(tr('No members in this circle have email addresses'));
       return;
     }
 
     setSending(true);
-    setStatus('Sending email...');
+    setStatus(tr('Sending email...'));
 
     try {
       const functions = getFunctions();
@@ -47,16 +48,18 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
       });
 
       if (result.data.success) {
-        setStatus(`Successfully sent ${result.data.sent} email${result.data.sent !== 1 ? 's' : ''}!`);
+        setStatus(result.data.sent !== 1
+          ? trf('Successfully sent {0} emails!', [result.data.sent])
+          : trf('Successfully sent {0} email!', [result.data.sent]));
         setTimeout(() => {
           onClose();
         }, 2000);
       } else {
-        setStatus('Error sending email. Please try again.');
+        setStatus(tr('Error sending email. Please try again.'));
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      setStatus('Error sending email. Please try again.');
+      setStatus(tr('Error sending email. Please try again.'));
     } finally {
       setSending(false);
     }
@@ -67,7 +70,7 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Email Circle Members</h2>
+          <h2 className="text-xl font-bold text-gray-800">{tr('Email Circle Members')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -81,29 +84,29 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
           {/* To field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              To: {circle.name}
+              {trf('To: {0}', [circle.name])}
             </label>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="flex flex-wrap gap-2">
                 {membersWithEmail.length === 0 ? (
                   <span className="text-sm text-gray-500 italic">
-                    No members with email addresses
+                    {tr('No members with email addresses')}
                   </span>
                 ) : (
                   membersWithEmail.map((member) => (
                     <span
                       key={member.id}
-                      className="inline-flex items-center px-2 py-1 bg-rose-100 text-rose-700 text-sm rounded"
+                      className="inline-flex items-center px-2 py-1 bg-primary-100 text-primary-700 text-sm rounded"
                     >
                       {member.fullName}
-                      <span className="ml-1 text-xs text-rose-500">({member.email})</span>
+                      <span className="ml-1 text-xs text-primary-500">({member.email})</span>
                     </span>
                   ))
                 )}
               </div>
               {members.length !== membersWithEmail.length && (
                 <p className="text-xs text-amber-600 mt-2">
-                  Note: {members.length - membersWithEmail.length} member(s) without email will not receive this message
+                  {trf('Note: {0} member(s) without email will not receive this message', [members.length - membersWithEmail.length])}
                 </p>
               )}
             </div>
@@ -112,27 +115,27 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
           {/* Subject field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subject
+              {tr('Subject')}
             </label>
             <input
               type="text"
               value={formData.subject}
               onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           {/* Message field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Message
+              {tr('Message')}
             </label>
             <textarea
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
               rows={8}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-              placeholder="Type your message here..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              placeholder={tr('Type your message here...')}
             />
           </div>
 
@@ -156,15 +159,15 @@ export default function EmailCircleModal({ circle, members, stakeId, wardId, onC
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleSend}
             disabled={sending || membersWithEmail.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
-            {sending ? 'Sending...' : 'Send Email'}
+            {sending ? tr('Sending...') : tr('Send Email')}
           </button>
         </div>
       </div>

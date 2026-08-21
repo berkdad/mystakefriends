@@ -7,6 +7,8 @@ import EditMyProfileModal from './EditMyProfileModal';
 import CircleChatView from './CircleChatView';
 import CircleEventsView from './CircleEventsView';
 import EmailCircleModal from '../circles/EmailCircleModal';
+import { tr, trf } from '../../i18n/translations';
+import { LanguageToggle } from '../../i18n/LanguageContext';
 
 export default function MemberDashboard({ user, userData, auth, db, storage, isAdmin = false, onSwitchToAdmin }) {
   const [activeTab, setActiveTab] = useState('circle');
@@ -233,10 +235,10 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-green-50 flex items-center justify-center">
-        <div className="text-rose-600 flex items-center gap-2">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50 flex items-center justify-center">
+        <div className="text-primary-600 flex items-center gap-2">
           <Heart className="animate-pulse" />
-          <span className="text-lg">Loading your circle...</span>
+          <span className="text-lg">{tr('Loading your circle...')}</span>
         </div>
       </div>
     );
@@ -244,25 +246,26 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
   if (!userData.wardId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-green-50">
-        <header className="bg-white shadow-sm border-b border-rose-100">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50">
+        <header className="bg-white shadow-sm border-b border-primary-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Heart className="w-8 h-8 text-rose-500" />
+                <Heart className="w-8 h-8 text-primary-500" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800">My Stake Friends</h1>
-                  <p className="text-sm text-gray-500">Welcome, {user.email}</p>
+                  <p className="text-sm text-gray-500">{trf('Welcome, {0}', [user.email])}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <LanguageToggle />
                 {isAdmin && onSwitchToAdmin && (
                   <button
                     onClick={onSwitchToAdmin}
                     className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200"
                   >
                     <Users className="w-4 h-4" />
-                    Back to Admin
+                    {tr('Back to Admin')}
                   </button>
                 )}
                 <button
@@ -270,7 +273,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                   className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign Out
+                  {tr('Sign Out')}
                 </button>
               </div>
             </div>
@@ -279,13 +282,12 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-xl shadow-md p-8 text-center">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Not Set Up as a Member Yet</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">{tr('Not Set Up as a Member Yet')}</h2>
             <p className="text-gray-600 mb-4">
-              To view your member dashboard, you need to be added as a member to a specific ward first.
+              {tr('To view your member dashboard, you need to be added as a member to a specific ward first.')}
             </p>
             <p className="text-sm text-gray-500">
-              As a {userData.role === 'stakeAdmin' ? 'Stake' : 'Ward'} Administrator, you can switch back to your admin view using the button above,
-              or ask another administrator to add you as a member to a ward so you can participate in a circle.
+              {trf('As a {0} Administrator, you can switch back to your admin view using the button above, or ask another administrator to add you as a member to a ward so you can participate in a circle.', [userData.role === 'stakeAdmin' ? tr('Stake') : tr('Ward')])}
             </p>
           </div>
         </main>
@@ -295,40 +297,41 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
 
   if (!circleData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-green-50">
-        <header className="bg-white shadow-sm border-b border-rose-100">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50">
+        <header className="bg-white shadow-sm border-b border-primary-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Heart className="w-8 h-8 text-rose-500" />
+                <Heart className="w-8 h-8 text-primary-500" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800">My Stake Friends</h1>
-                  <p className="text-sm text-gray-500">Welcome, {myMemberProfile?.fullName || user.email}</p>
+                  <p className="text-sm text-gray-500">{trf('Welcome, {0}', [myMemberProfile?.fullName || user.email])}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <LanguageToggle />
                 {isAdmin && onSwitchToAdmin && (
                   <button
                     onClick={onSwitchToAdmin}
                     className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200"
                   >
                     <Users className="w-4 h-4" />
-                    Back to Admin
+                    {tr('Back to Admin')}
                   </button>
                 )}
                 <button
                   onClick={() => setShowEditProfileModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                  className="flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-primary-200"
                 >
                   <Edit2 className="w-4 h-4" />
-                  My Profile
+                  {tr('My Profile')}
                 </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign Out
+                  {tr('Sign Out')}
                 </button>
               </div>
             </div>
@@ -337,19 +340,19 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-xl shadow-md p-8 text-center">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Not in a Circle Yet</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">{tr('Not in a Circle Yet')}</h2>
             <p className="text-gray-600 mb-6">
-              You haven't been assigned to a friendship circle yet. Please contact your ward administrator.
+              {tr("You haven't been assigned to a friendship circle yet. Please contact your ward administrator.")}
             </p>
             <button
               onClick={() => setShowEditProfileModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
             >
               <Edit2 className="w-5 h-5" />
-              Complete Your Profile
+              {tr('Complete Your Profile')}
             </button>
             <p className="text-sm text-gray-500 mt-4">
-              Get your profile ready so your circle members can get to know you!
+              {tr('Get your profile ready so your circle members can get to know you!')}
             </p>
           </div>
         </main>
@@ -372,40 +375,41 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-green-50">
-      <header className="bg-white shadow-sm border-b border-rose-100">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50">
+      <header className="bg-white shadow-sm border-b border-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Heart className="w-8 h-8 text-rose-500" />
+              <Heart className="w-8 h-8 text-primary-500" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">My Stake Friends</h1>
                 <p className="text-sm text-gray-500">{circleData.name}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <LanguageToggle />
               {isAdmin && onSwitchToAdmin && (
                 <button
                   onClick={onSwitchToAdmin}
                   className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200"
                 >
                   <Users className="w-4 h-4" />
-                  Back to Admin
+                  {tr('Back to Admin')}
                 </button>
               )}
               <button
                 onClick={() => setShowEditProfileModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                className="flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-primary-200"
               >
                 <Edit2 className="w-4 h-4" />
-                My Profile
+                {tr('My Profile')}
               </button>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {tr('Sign Out')}
               </button>
             </div>
           </div>
@@ -418,17 +422,21 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             onClick={() => setActiveTab('circle')}
             className={`p-6 rounded-xl shadow-md border-2 transition-all ${
               activeTab === 'circle'
-                ? 'bg-rose-500 border-rose-600 text-white'
-                : 'bg-white border-rose-100 text-gray-800 hover:border-rose-300'
+                ? 'bg-primary-500 border-primary-600 text-white'
+                : 'bg-white border-primary-100 text-gray-800 hover:border-primary-300'
             }`}
           >
-            <Users className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'circle' ? 'text-white' : 'text-rose-500'}`} />
-            <h3 className="text-xl font-semibold mb-1">My Circle</h3>
-            <p className={`text-sm ${activeTab === 'circle' ? 'text-rose-100' : 'text-gray-600'}`}>
-              {circleMembers.length} member{circleMembers.length === 1 ? '' : 's'}
+            <Users className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'circle' ? 'text-white' : 'text-primary-500'}`} />
+            <h3 className="text-xl font-semibold mb-1">{tr('My Circle')}</h3>
+            <p className={`text-sm ${activeTab === 'circle' ? 'text-primary-100' : 'text-gray-600'}`}>
+              {circleMembers.length === 1
+                ? trf('{0} member', [circleMembers.length])
+                : trf('{0} members', [circleMembers.length])}
               {(circleData.visitingAdmins || []).length > 0 &&
-                `, ${(circleData.visitingAdmins || []).length} visitor${
-                  (circleData.visitingAdmins || []).length === 1 ? '' : 's'
+                `, ${
+                  (circleData.visitingAdmins || []).length === 1
+                    ? trf('{0} visitor', [(circleData.visitingAdmins || []).length])
+                    : trf('{0} visitors', [(circleData.visitingAdmins || []).length])
                 }`}
             </p>
           </button>
@@ -442,9 +450,9 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             }`}
           >
             <MessageSquare className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'chat' ? 'text-white' : 'text-blue-500'}`} />
-            <h3 className="text-xl font-semibold mb-1">Chat</h3>
+            <h3 className="text-xl font-semibold mb-1">{tr('Chat')}</h3>
             <p className={`text-sm ${activeTab === 'chat' ? 'text-blue-100' : 'text-gray-600'}`}>
-              {recentChats.length} recent
+              {trf('{0} recent', [recentChats.length])}
             </p>
           </button>
 
@@ -457,29 +465,29 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
             }`}
           >
             <Calendar className={`w-12 h-12 mx-auto mb-3 ${activeTab === 'events' ? 'text-white' : 'text-green-500'}`} />
-            <h3 className="text-xl font-semibold mb-1">Events</h3>
+            <h3 className="text-xl font-semibold mb-1">{tr('Events')}</h3>
             <p className={`text-sm ${activeTab === 'events' ? 'text-green-100' : 'text-gray-600'}`}>
-              {upcomingEvents.length} upcoming
+              {trf('{0} upcoming', [upcomingEvents.length])}
             </p>
           </button>
         </div>
 
         {activeTab === 'circle' && (
-          <div className="bg-white rounded-xl shadow-md border border-rose-100 p-6">
+          <div className="bg-white rounded-xl shadow-md border border-primary-100 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">Circle Members</h2>
+              <h2 className="text-xl font-semibold text-gray-800">{tr('Circle Members')}</h2>
               <button
                 onClick={() => setShowEmailCircleModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                Email My Circle
+                {tr('Email My Circle')}
               </button>
             </div>
             {(circleData.visitingAdmins || []).length > 0 && (
               <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200">
                 <p className="text-sm text-green-800">
-                  <span className="font-semibold">Visiting now: </span>
+                  <span className="font-semibold">{tr('Visiting now:')} </span>
                   {(circleData.visitingAdmins || [])
                     .map((v) => v.name)
                     .join(', ')}
@@ -496,7 +504,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                       setSelectedMember(member);
                       setShowProfileModal(true);
                     }}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left hover:border-rose-300 ${
+                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left hover:border-primary-300 ${
                       age !== null && age <= 17 ? 'bg-yellow-50 border-yellow-300' : 'border-gray-200'
                     }`}
                   >
@@ -505,11 +513,11 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                       <img
                         src={member.profilePicUrl}
                         alt={member.fullName}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-rose-200"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center border-2 border-rose-200">
-                        <User className="w-8 h-8 text-rose-400" />
+                      <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
+                        <User className="w-8 h-8 text-primary-400" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -520,7 +528,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-2">
-                    {member.aboutMe || 'Click to view profile'}
+                    {member.aboutMe || tr('Click to view profile')}
                   </p>
                 </button>
               );
@@ -559,6 +567,7 @@ export default function MemberDashboard({ user, userData, auth, db, storage, isA
       {showProfileModal && selectedMember && (
         <MemberProfileModal
           member={selectedMember}
+          canSeeBirthYear={isAdmin}
           onClose={() => {
             setShowProfileModal(false);
             setSelectedMember(null);

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { X, UserPlus } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
+import { tr, trf } from '../../i18n/translations';
 
 export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClose, onSave }) {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
+    gender: 'female',
     selectedWardId: wardId || '' // Pre-select if ward is provided
   });
   const [loading, setLoading] = useState(false);
@@ -20,25 +22,25 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
   const handleSave = async () => {
     // Validation
     if (!formData.fullName.trim()) {
-      setError('Full name is required');
+      setError(tr('Full name is required'));
       return;
     }
 
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError(tr('Email is required'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
+      setError(tr('Please enter a valid email address'));
       return;
     }
 
     // If wards are provided (stake admin viewing all wards), require ward selection
     if (wards && wards.length > 0 && !formData.selectedWardId) {
-      setError('Please select a ward');
+      setError(tr('Please select a ward'));
       return;
     }
 
@@ -73,6 +75,7 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
         fullName: formData.fullName.trim(),
         email: emailLower,
         phone: formData.phone.trim(),
+        gender: formData.gender,
         hasLoggedIn: existingUserData ? existingUserData.hasLoggedIn || false : false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -88,7 +91,7 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
       onSave();
     } catch (err) {
       console.error('Error adding member:', err);
-      setError('Failed to add member. Please try again.');
+      setError(tr('Failed to add member. Please try again.'));
       setLoading(false);
     }
   };
@@ -97,7 +100,7 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Quick Add Member</h2>
+          <h2 className="text-xl font-bold text-gray-800">{tr('Quick Add Member')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
@@ -109,13 +112,13 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name <span className="text-red-500">*</span>
+              {tr('Full Name')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.fullName}
               onChange={(e) => handleChange('fullName', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="John Doe"
               autoFocus
             />
@@ -123,42 +126,56 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
+              {tr('Email')} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="john.doe@example.com"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              {tr('Phone')}
             </label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => handleChange('phone', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="(555) 123-4567"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {tr('Gender')}
+            </label>
+            <select
+              value={formData.gender}
+              onChange={(e) => handleChange('gender', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="female">{tr('Female')}</option>
+              <option value="male">{tr('Male')}</option>
+            </select>
           </div>
 
           {/* Ward Selection - only show if multiple wards available */}
           {wards && wards.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ward <span className="text-red-500">*</span>
+                {tr('Ward')} <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.selectedWardId}
                 onChange={(e) => handleChange('selectedWardId', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">Select a ward...</option>
+                <option value="">{tr('Select a ward...')}</option>
                 {wards.map(ward => (
                   <option key={ward.id} value={ward.id}>{ward.name}</option>
                 ))}
@@ -174,7 +191,7 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
 
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-sm text-blue-800">
-              📝 The member can complete their profile after accepting their invitation and logging in.
+              📝 {tr('The member can complete their profile after accepting their invitation and logging in.')}
             </p>
           </div>
         </div>
@@ -184,15 +201,15 @@ export default function QuickAddMemberModal({ stakeId, wardId, wards, db, onClos
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
           >
             <UserPlus className="w-4 h-4" />
-            {loading ? 'Adding...' : 'Add Member'}
+            {loading ? tr('Adding...') : tr('Add Member')}
           </button>
         </div>
       </div>

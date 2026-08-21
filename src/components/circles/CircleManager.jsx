@@ -14,6 +14,7 @@ import ConfirmLiveModeModal from './ConfirmLiveModeModal';
 import CompactCircleCard from './CompactCircleCard';
 import CircleDetailModal from './CircleDetailModal';
 import jsPDF from 'jspdf';
+import { tr, trf } from '../../i18n/translations';
 
 function expandRect(rect, by = 32) {
   return {
@@ -213,7 +214,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       setLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
-      setError('Failed to load circles and members');
+      setError(tr('Failed to load circles and members'));
       setLoading(false);
     }
   };
@@ -296,7 +297,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     try {
       const nextNumber = circles.length + 1;
       const newCircle = {
-        name: `Circle ${nextNumber}`,
+        name: trf('Circle {0}', [nextNumber]),
         captainId: null,
         memberIds: [],
         mode: 'edit',  // Start in edit mode
@@ -309,10 +310,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       const docRef = await addDoc(collection(db, 'stakes', stakeId, 'wards', wardId, 'circles'), newCircle);
 
       setCircles(prev => [...prev, { id: docRef.id, ...newCircle }]);
-      setSuccess('Circle created successfully');
+      setSuccess(tr('Circle created successfully'));
     } catch (err) {
       console.error('Error creating circle:', err);
-      setError('Failed to create circle');
+      setError(tr('Failed to create circle'));
     }
   };
 
@@ -323,15 +324,15 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       });
 
       setCircles(prev => prev.map(c => c.id === circleId ? { ...c, name: newName } : c));
-      setSuccess('Circle name updated');
+      setSuccess(tr('Circle name updated'));
     } catch (err) {
       console.error('Error updating circle name:', err);
-      setError('Failed to update circle name');
+      setError(tr('Failed to update circle name'));
     }
   };
 
   const deleteCircle = async (circleId) => {
-    if (!confirm('Are you sure you want to delete this circle? All members will be moved back to available members.')) {
+    if (!confirm(tr('Are you sure you want to delete this circle? All members will be moved back to available members.'))) {
       return;
     }
 
@@ -345,10 +346,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       setAvailableMembers(prev => [...prev, ...membersToReturn]);
 
       setCircles(prev => prev.filter(c => c.id !== circleId));
-      setSuccess('Circle deleted successfully');
+      setSuccess(tr('Circle deleted successfully'));
     } catch (err) {
       console.error('Error deleting circle:', err);
-      setError('Failed to delete circle');
+      setError(tr('Failed to delete circle'));
     }
   };
 
@@ -368,10 +369,12 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       // Remove from available
       setAvailableMembers(prev => prev.filter(m => !memberIds.includes(m.id)));
 
-      setSuccess(`${memberIds.length} member${memberIds.length > 1 ? 's' : ''} added successfully`);
+      setSuccess(memberIds.length > 1
+        ? trf('{0} members added successfully', [memberIds.length])
+        : trf('{0} member added successfully', [memberIds.length]));
     } catch (err) {
       console.error('Error adding members:', err);
-      setError('Failed to add members');
+      setError(tr('Failed to add members'));
     }
   };
 
@@ -394,10 +397,12 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       const membersToReturn = allMembers.filter(m => memberIds.includes(m.id));
       setAvailableMembers(prev => [...prev, ...membersToReturn]);
 
-      setSuccess(`${memberIds.length} member${memberIds.length > 1 ? 's' : ''} removed successfully`);
+      setSuccess(memberIds.length > 1
+        ? trf('{0} members removed successfully', [memberIds.length])
+        : trf('{0} member removed successfully', [memberIds.length]));
     } catch (err) {
       console.error('Error removing members:', err);
-      setError('Failed to remove members');
+      setError(tr('Failed to remove members'));
     }
   };
 
@@ -443,12 +448,12 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
               );
             }
 
-            setSuccess('Member removed from circle');
+            setSuccess(tr('Member removed from circle'));
             setActiveMember(null);
           }
         } catch (err) {
           console.error('Error removing member:', err);
-          setError('Failed to remove member');
+          setError(tr('Failed to remove member'));
         }
       }
       return;
@@ -529,11 +534,11 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       }
 
       // 5) UX feedback
-      setSuccess('Member moved successfully');
+      setSuccess(tr('Member moved successfully'));
       setActiveMember(null);
     } catch (err) {
       console.error('Error moving member:', err);
-      setError('Failed to move member');
+      setError(tr('Failed to move member'));
       loadData();
     }
   };
@@ -549,10 +554,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         c.id === circleId ? { ...c, captainId: memberId } : c
       ));
 
-      setSuccess('Captain assigned successfully');
+      setSuccess(tr('Captain assigned successfully'));
     } catch (err) {
       console.error('Error setting captain:', err);
-      setError('Failed to set captain');
+      setError(tr('Failed to set captain'));
     }
   };
 
@@ -601,14 +606,14 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         c.id === circleId ? { ...c, ...updates } : c
       ));
 
-      setSuccess(`Circle switched to ${newMode === 'live' ? 'Live' : 'Edit'} mode`);
+      setSuccess(trf('Circle switched to {0} mode', [newMode === 'live' ? tr('Live') : tr('Edit')]));
 
       // Close modal if it was open
       setShowConfirmLiveModal(false);
       setCircleToToggle(null);
     } catch (err) {
       console.error('Error toggling mode:', err);
-      setError('Failed to toggle mode');
+      setError(tr('Failed to toggle mode'));
     }
   };
 
@@ -616,7 +621,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     try {
       const member = allMembers.find(m => m.id === memberId);
       if (!member || !member.email) {
-        setError('Member not found or has no email');
+        setError(tr('Member not found or has no email'));
         return;
       }
 
@@ -633,10 +638,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         wardName: wardName
       });
 
-      setSuccess(`Invitation resent to ${member.fullName}`);
+      setSuccess(trf('Invitation resent to {0}', [member.fullName]));
     } catch (err) {
       console.error('Error resending invite:', err);
-      setError('Failed to resend invitation');
+      setError(tr('Failed to resend invitation'));
     }
   };
 
@@ -706,7 +711,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     // Title
     pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`${wardName} - Friendship Circles`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(trf('{0} - Friendship Circles', [wardName]), pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
 
     // Date
@@ -717,13 +722,13 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       month: 'long',
       day: 'numeric'
     });
-    pdf.text(`Generated: ${dateStr}`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(trf('Generated: {0}', [dateStr]), pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
 
     // Summary
     pdf.setFontSize(11);
     const totalMembers = circles.reduce((acc, c) => acc + (c.memberIds?.length || 0), 0);
-    pdf.text(`Total Circles: ${circles.length}  |  Total Members Assigned: ${totalMembers}`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(trf('Total Circles: {0}  |  Total Members Assigned: {1}', [circles.length, totalMembers]), pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
 
     // Draw a line
@@ -760,7 +765,9 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 100, 100);
-      pdf.text(`${circleMembers.length} member${circleMembers.length !== 1 ? 's' : ''}`, margin, yPosition);
+      pdf.text(circleMembers.length !== 1
+        ? trf('{0} members', [circleMembers.length])
+        : trf('{0} member', [circleMembers.length]), margin, yPosition);
       yPosition += 6;
 
       // Captain (if exists)
@@ -768,7 +775,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(180, 130, 50); // Amber color
-        const captainText = `[Captain] ${captain.fullName}`;
+        const captainText = trf('[Captain] {0}', [captain.fullName]);
         pdf.text(captainText, margin + 5, yPosition);
         yPosition += 5;
 
@@ -813,11 +820,11 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
     // Footer on last page
     pdf.setFontSize(8);
     pdf.setTextColor(150, 150, 150);
-    pdf.text('My Stake Friends - Friendship Circles', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    pdf.text(tr('My Stake Friends - Friendship Circles'), pageWidth / 2, pageHeight - 10, { align: 'center' });
 
     // Save the PDF
     pdf.save(`${wardName.replace(/\s+/g, '_')}_Circles_${new Date().toISOString().split('T')[0]}.pdf`);
-    setSuccess('PDF downloaded successfully');
+    setSuccess(tr('PDF downloaded successfully'));
   };
 
   // Generate all draggable IDs
@@ -831,7 +838,7 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading circles...</div>
+        <div className="text-gray-500">{tr('Loading circles...')}</div>
       </div>
     );
   }
@@ -839,19 +846,19 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
   function DraggableMemberOverlay({ member }) {
     const age = calculateAge(member.dob);
     return (
-      <div className={`border-2 border-rose-400 rounded-lg p-3 shadow-2xl opacity-90 ${
-        age !== null && age <= 17 ? 'bg-purple-50' : 'bg-white'
+      <div className={`border-2 border-primary-400 rounded-lg p-3 shadow-2xl opacity-90 ${
+        age !== null && age <= 17 ? (member.gender === 'male' ? 'bg-blue-50' : 'bg-purple-50') : 'bg-white'
       }`}>
         <div className="flex items-center gap-2">
           {member.profilePicUrl ? (
             <img
               src={member.profilePicUrl}
               alt={member.fullName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-rose-200"
+              className="w-10 h-10 rounded-full object-cover border-2 border-primary-200"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center border-2 border-rose-200">
-              <User className="w-5 h-5 text-rose-400" />
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
+              <User className="w-5 h-5 text-primary-400" />
             </div>
           )}
           <p className="text-sm font-medium text-gray-900">{member.fullName}</p>
@@ -887,17 +894,17 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
             {/* Left sidebar - Available members with filters */}
             {!isCompactView && (
               <div className="w-80 flex flex-col bg-white rounded-lg shadow-md border border-gray-200 flex-shrink-0">
-                <div className="p-4 border-b border-gray-200 bg-rose-50 flex-shrink-0">
+                <div className="p-4 border-b border-gray-200 bg-primary-50 flex-shrink-0">
                   <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-rose-500" />
-                    Available Members
+                    <Target className="w-5 h-5 text-primary-500" />
+                    {tr('Available Members')}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {filteredMembers.length} of {availableMembers.length} shown
+                    {trf('{0} of {1} shown', [filteredMembers.length, availableMembers.length])}
                   </p>
                   {availableMembers.length !== filteredMembers.length && (
                     <p className="text-xs text-amber-600 mt-1">
-                      {availableMembers.length - filteredMembers.length} members hidden by filters
+                      {trf('{0} members hidden by filters', [availableMembers.length - filteredMembers.length])}
                     </p>
                   )}
                 </div>
@@ -909,14 +916,14 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                 <div
                   ref={setAvailRef}
                   className={`p-4 space-y-2 transition-all overflow-y-auto flex-1 ${
-                    isOverAvail ? 'border-2 border-rose-400 bg-rose-50' : 'border border-transparent'
+                    isOverAvail ? 'border-2 border-primary-400 bg-primary-50' : 'border border-transparent'
                   }`}
                 >
                   {filteredMembers.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 text-sm">
                       {availableMembers.length === 0
-                        ? 'All members are in circles'
-                        : 'No members match filters'}
+                        ? tr('All members are in circles')
+                        : tr('No members match filters')}
                     </div>
                   ) : (
                     filteredMembers.map(member => (
@@ -938,17 +945,17 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
               <div className="mb-4 flex-shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-xl font-semibold text-gray-800">
-                    Friendship Circles ({displayedCircles.length}{circleSearchTerm ? ` of ${circles.length}` : ''})
+                    {tr('Friendship Circles')} ({displayedCircles.length}{circleSearchTerm ? trf(' of {0}', [circles.length]) : ''})
                   </h2>
                   <div className="flex items-center gap-2">
                     {/* Print PDF Button */}
                     <button
                       onClick={printCirclesPDF}
                       className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                      title="Print Circles PDF"
+                      title={tr('Print Circles PDF')}
                     >
                       <Printer className="w-4 h-4" />
-                      <span className="hidden sm:inline">Print</span>
+                      <span className="hidden sm:inline">{tr('Print')}</span>
                     </button>
 
                     {/* View Toggle */}
@@ -956,20 +963,20 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       onClick={() => setIsCompactView(!isCompactView)}
                       className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
                         isCompactView
-                          ? 'bg-rose-100 border-rose-300 text-rose-700'
+                          ? 'bg-primary-100 border-primary-300 text-primary-700'
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
-                      title={isCompactView ? 'Switch to Full View' : 'Switch to Compact View'}
+                      title={isCompactView ? tr('Switch to Full View') : tr('Switch to Compact View')}
                     >
                       {isCompactView ? (
                         <>
                           <LayoutGrid className="w-4 h-4" />
-                          <span className="hidden sm:inline">Full View</span>
+                          <span className="hidden sm:inline">{tr('Full View')}</span>
                         </>
                       ) : (
                         <>
                           <List className="w-4 h-4" />
-                          <span className="hidden sm:inline">Compact View</span>
+                          <span className="hidden sm:inline">{tr('Compact View')}</span>
                         </>
                       )}
                     </button>
@@ -979,17 +986,17 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       <button
                         onClick={toggleAllCollapsed}
                         className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                        title={allCollapsed ? 'Expand All' : 'Collapse All'}
+                        title={allCollapsed ? tr('Expand All') : tr('Collapse All')}
                       >
                         {allCollapsed ? (
                           <>
                             <ChevronDown className="w-4 h-4" />
-                            <span className="hidden sm:inline">Expand All</span>
+                            <span className="hidden sm:inline">{tr('Expand All')}</span>
                           </>
                         ) : (
                           <>
                             <ChevronUp className="w-4 h-4" />
-                            <span className="hidden sm:inline">Collapse All</span>
+                            <span className="hidden sm:inline">{tr('Collapse All')}</span>
                           </>
                         )}
                       </button>
@@ -997,10 +1004,10 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
 
                     <button
                       onClick={createCircle}
-                      className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Create Circle
+                      {tr('Create Circle')}
                     </button>
                   </div>
                 </div>
@@ -1013,14 +1020,14 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                       type="text"
                       value={circleSearchTerm}
                       onChange={(e) => setCircleSearchTerm(e.target.value)}
-                      placeholder="Find circles or members..."
-                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      placeholder={tr('Find circles or members...')}
+                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     {circleSearchTerm && (
                       <button
                         onClick={() => setCircleSearchTerm('')}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        title="Clear filter"
+                        title={tr('Clear filter')}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -1029,9 +1036,9 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                   {circleSearchTerm && (
                     <button
                       onClick={() => setCircleSearchTerm('')}
-                      className="px-3 py-2 text-sm text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="px-3 py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
                     >
-                      Clear Filter
+                      {tr('Clear Filter')}
                     </button>
                   )}
                 </div>
@@ -1041,30 +1048,30 @@ export default function CircleManager({ db, stakeId, wardId, wardName }) {
                 circleSearchTerm ? (
                   <div className="flex flex-col items-center justify-center flex-1 bg-white rounded-lg shadow-md border border-gray-200 p-12">
                     <Search className="w-16 h-16 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Circles Found</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{tr('No Circles Found')}</h3>
                     <p className="text-gray-600 text-center mb-4">
-                      No circles or members match "{circleSearchTerm}"
+                      {trf('No circles or members match "{0}"', [circleSearchTerm])}
                     </p>
                     <button
                       onClick={() => setCircleSearchTerm('')}
-                      className="px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                     >
-                      Clear Filter
+                      {tr('Clear Filter')}
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center flex-1 bg-white rounded-lg shadow-md border-2 border-dashed border-gray-300 p-12">
                     <Target className="w-16 h-16 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Circles Yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{tr('No Circles Yet')}</h3>
                     <p className="text-gray-600 text-center mb-6">
-                      Create your first friendship circle to get started
+                      {tr('Create your first friendship circle to get started')}
                     </p>
                     <button
                       onClick={createCircle}
-                      className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                      className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                     >
                       <Plus className="w-5 h-5" />
-                      Create First Circle
+                      {tr('Create First Circle')}
                     </button>
                   </div>
                 )

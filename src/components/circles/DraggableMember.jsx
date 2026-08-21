@@ -2,6 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Crown, User, Mail, Phone, Baby, Heart, Send } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
 export default function DraggableMember({
    member,
@@ -64,10 +65,10 @@ export default function DraggableMember({
       ref={setNodeRef}
       style={style}
       className={`border rounded-lg p-3 shadow-sm transition-all ${
-        age !== null && age <= 17 ? 'bg-purple-50' : 'bg-white'
+        age !== null && age <= 17 ? (member.gender === 'male' ? 'bg-blue-50' : 'bg-purple-50') : 'bg-white'
       } ${
         isDragging
-          ? 'shadow-2xl scale-105 rotate-3 border-rose-400 bg-rose-50 z-50'
+          ? 'shadow-2xl scale-105 rotate-3 border-primary-400 bg-primary-50 z-50'
           : 'hover:shadow-md'
       } ${
         isCaptain ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
@@ -79,7 +80,7 @@ export default function DraggableMember({
           {...attributes}
           {...listeners}
           className={`cursor-grab active:cursor-grabbing pt-1 transition-colors ${
-            isDragging ? 'text-rose-500' : 'text-gray-400 hover:text-gray-600'
+            isDragging ? 'text-primary-500' : 'text-gray-400 hover:text-gray-600'
           }`}
         >
           <GripVertical className="w-4 h-4" />
@@ -95,11 +96,11 @@ export default function DraggableMember({
                 <img
                   src={member.profilePicUrl}
                   alt={member.fullName}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-rose-200"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-primary-200"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center border-2 border-rose-200">
-                  <User className="w-5 h-5 text-rose-400" />
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
+                  <User className="w-5 h-5 text-primary-400" />
                 </div>
               )}
             </div>
@@ -132,8 +133,8 @@ export default function DraggableMember({
             )}
             {showAge && (
               <div className="text-xs text-gray-500">
-                {age ? `Age: ${age}` : (
-                  <span className="text-amber-600 italic">DOB missing</span>
+                {age ? trf('Age: {0}', [age]) : (
+                  <span className="text-amber-600 italic">{tr('DOB missing')}</span>
                 )}
               </div>
             )}
@@ -147,7 +148,7 @@ export default function DraggableMember({
             <button
               onClick={onResendInvite}
               className="p-1.5 rounded transition-colors text-purple-500 hover:text-purple-700 hover:bg-purple-50"
-              title="Resend invite email"
+              title={tr('Resend invite email')}
             >
               <Send className="w-4 h-4" />
             </button>
@@ -162,7 +163,7 @@ export default function DraggableMember({
                   ? 'text-amber-500 hover:text-gray-400 hover:bg-gray-50'
                   : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'
               }`}
-              title={isCaptain ? "Remove as captain" : "Set as captain"}
+              title={isCaptain ? tr('Remove as captain') : tr('Set as captain')}
             >
               <Crown className={`w-4 h-4 ${isCaptain ? 'fill-current' : ''}`} />
             </button>

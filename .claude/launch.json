@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-build",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-s", "build", "-l", "5050"],
+      "port": 5050
+    }
+  ]
+}

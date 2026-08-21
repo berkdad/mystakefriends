@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, PlayCircle, AlertCircle, UserPlus, Users, UserMinus, Mail, Smartphone } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
 export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCancel }) {
   // Get the last snapshot
@@ -28,7 +29,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
             <div className="flex items-start gap-3">
               <PlayCircle className="w-7 h-7 text-green-600 flex-shrink-0 mt-1" />
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Switch to Live Mode?</h2>
+                <h2 className="text-xl font-bold text-gray-800">{tr('Switch to Live Mode?')}</h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {circle.name}
                 </p>
@@ -51,10 +52,9 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold text-blue-900">No Changes Detected</h3>
+                  <h3 className="font-semibold text-blue-900">{tr('No Changes Detected')}</h3>
                   <p className="text-sm text-blue-800 mt-1">
-                    No members were added or removed since the last time this circle was Live.
-                    No notifications will be sent.
+                    {tr('No members were added or removed since the last time this circle was Live. No notifications will be sent.')}
                   </p>
                 </div>
               </div>
@@ -66,9 +66,9 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-amber-900">Notifications Will Be Sent</h3>
+                    <h3 className="font-semibold text-amber-900">{tr('Notifications Will Be Sent')}</h3>
                     <p className="text-sm text-amber-800 mt-1">
-                      The following members will receive notifications (both push and email):
+                      {tr('The following members will receive notifications (both push and email):')}
                     </p>
                   </div>
                 </div>
@@ -80,7 +80,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                   <div className="flex items-center gap-2">
                     <UserPlus className="w-5 h-5 text-green-600" />
                     <h3 className="font-semibold text-gray-800">
-                      New Members Added ({addedMembers.length})
+                      {trf('New Members Added ({0})', [addedMembers.length])}
                     </h3>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
@@ -107,12 +107,12 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                           <div className="flex items-center gap-4 mt-2">
                             <div className="flex items-center gap-1 text-xs text-green-700">
                               <Smartphone className="w-3 h-3" />
-                              <span>Push: "Welcome to {circle.name}!"</span>
+                              <span>{trf('Push: "Welcome to {0}!"', [circle.name])}</span>
                             </div>
                             {member.email && (
                               <div className="flex items-center gap-1 text-xs text-green-700">
                                 <Mail className="w-3 h-3" />
-                                <span>Email: Welcome message</span>
+                                <span>{tr('Email: Welcome message')}</span>
                               </div>
                             )}
                           </div>
@@ -129,7 +129,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-blue-600" />
                     <h3 className="font-semibold text-gray-800">
-                      Existing Members ({existingMembers.length})
+                      {trf('Existing Members ({0})', [existingMembers.length])}
                     </h3>
                   </div>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -154,7 +154,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                       ))}
                       {existingMembers.length > 3 && (
                         <p className="text-sm text-gray-600 pl-10">
-                          ...and {existingMembers.length - 3} more
+                          {trf('...and {0} more', [existingMembers.length - 3])}
                         </p>
                       )}
                     </div>
@@ -164,7 +164,9 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                           <div className="flex items-start gap-2 text-xs text-blue-700">
                             <Smartphone className="w-3 h-3 mt-0.5 flex-shrink-0" />
                             <span>
-                              Push & Email: "{addedMembers.map(m => m.fullName).join(', ')} {addedMembers.length > 1 ? 'were' : 'was'} added to your circle"
+                              {addedMembers.length > 1
+                                ? trf('Push & Email: "{0} were added to your circle"', [addedMembers.map(m => m.fullName).join(', ')])
+                                : trf('Push & Email: "{0} was added to your circle"', [addedMembers.map(m => m.fullName).join(', ')])}
                             </span>
                           </div>
                         )}
@@ -172,7 +174,9 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                           <div className="flex items-start gap-2 text-xs text-blue-700">
                             <Smartphone className="w-3 h-3 mt-0.5 flex-shrink-0" />
                             <span>
-                              Push & Email: "{removedMembers.map(m => m.fullName).join(', ')} {removedMembers.length > 1 ? 'were' : 'was'} reassigned"
+                              {removedMembers.length > 1
+                                ? trf('Push & Email: "{0} were reassigned"', [removedMembers.map(m => m.fullName).join(', ')])
+                                : trf('Push & Email: "{0} was reassigned"', [removedMembers.map(m => m.fullName).join(', ')])}
                             </span>
                           </div>
                         )}
@@ -188,7 +192,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                   <div className="flex items-center gap-2">
                     <UserMinus className="w-5 h-5 text-gray-600" />
                     <h3 className="font-semibold text-gray-800">
-                      Members Removed ({removedMembers.length})
+                      {trf('Members Removed ({0})', [removedMembers.length])}
                     </h3>
                   </div>
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
@@ -212,7 +216,7 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
                     ))}
                     <div className="mt-3 pt-3 border-t border-gray-300">
                       <p className="text-xs text-gray-600 italic">
-                        Note: Removed members will NOT receive a notification. They will receive a welcome notification when added to their new circle.
+                        {tr('Note: Removed members will NOT receive a notification. They will receive a welcome notification when added to their new circle.')}
                       </p>
                     </div>
                   </div>
@@ -223,11 +227,11 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
 
           {/* Info about what Live mode means */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 text-sm mb-2">What happens in Live mode:</h4>
+            <h4 className="font-semibold text-gray-800 text-sm mb-2">{tr('What happens in Live mode:')}</h4>
             <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-              <li>Circle is marked as active and finalized</li>
-              <li>Members can see and interact with the circle</li>
-              <li>You can switch back to Edit mode anytime to make more changes</li>
+              <li>{tr('Circle is marked as active and finalized')}</li>
+              <li>{tr('Members can see and interact with the circle')}</li>
+              <li>{tr('You can switch back to Edit mode anytime to make more changes')}</li>
             </ul>
           </div>
         </div>
@@ -238,14 +242,18 @@ export default function ConfirmLiveModeModal({ circle, members, onConfirm, onCan
             onClick={onCancel}
             className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition-colors font-medium"
           >
-            Cancel
+            {tr('Cancel')}
           </button>
           <button
             onClick={onConfirm}
             className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
           >
             <PlayCircle className="w-5 h-5" />
-            {hasChanges ? `Confirm & Send ${addedMembers.length + existingMembers.length} Notification${addedMembers.length + existingMembers.length !== 1 ? 's' : ''}` : 'Switch to Live Mode'}
+            {hasChanges
+              ? (addedMembers.length + existingMembers.length !== 1
+                ? trf('Confirm & Send {0} Notifications', [addedMembers.length + existingMembers.length])
+                : trf('Confirm & Send {0} Notification', [addedMembers.length + existingMembers.length]))
+              : tr('Switch to Live Mode')}
           </button>
         </div>
       </div>

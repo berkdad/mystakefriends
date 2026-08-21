@@ -1,73 +1,67 @@
 import React, { useState } from 'react';
-import { X, Send, Users } from 'lucide-react';
-import { getAuth } from 'firebase/auth';
+import { X, Bell, Users } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { tr, trf } from '../../i18n/translations';
 
-export default function EmailAllModal({ scope, stakeId, wardId, stakeName, wardName, memberCount, onClose }) {
+// Sends an in-app push notification to members via the notifyMembers Cloud
+// Function (the same one the mobile app uses). Stake scope pushes to everyone
+// in the stake; ward scope pushes to one ward. The server enforces that a ward
+// admin may only push to their own ward and a stake admin to their own stake.
+export default function NotifyMembersModal({ scope, stakeId, wardId, stakeName, wardName, onClose }) {
   // scope: 'ward' or 'stake'
-  const auth = getAuth();
-  const currentUser = auth.currentUser;
-
-  const scopeLabel = scope === 'stake' ? `${stakeName || tr('Stake')}` : `${wardName || tr('Ward')}`;
+  const scopeLabel = scope === 'stake' ? (stakeName || tr('the stake')) : (wardName || tr('this ward'));
 
   const [formData, setFormData] = useState({
-    from: currentUser?.email || '',
-    subject: trf('Message from {0}', [scopeLabel]),
-    message: ''
+    title: '',
+    body: '',
   });
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState('');
 
   const handleSend = async () => {
-    if (!formData.message.trim()) {
-      setStatus(tr('Please enter a message'));
+    if (!formData.title.trim() || !formData.body.trim()) {
+      setStatus(tr('Please enter both a title and a message'));
       return;
     }
 
     const confirmMsg = scope === 'stake'
-      ? tr('Send this email to ALL members across the entire stake?')
-      : trf('Send this email to ALL members in {0}?', [wardName || tr('this ward')]);
+      ? tr('Send this notification to EVERYONE in the stake?')
+      : trf('Send this notification to everyone in {0}?', [wardName || tr('this ward')]);
 
     if (!confirm(confirmMsg)) return;
 
     setSending(true);
-    setStatus(tr('Sending emails...'));
+    setStatus(tr('Sending notification...'));
 
     try {
       const functions = getFunctions();
-      const functionName = scope === 'stake' ? 'emailAllStakeMembers' : 'emailAllWardMembers';
-      const emailAll = httpsCallable(functions, functionName);
+      const notifyMembers = httpsCallable(functions, 'notifyMembers');
 
       const payload = {
         stakeId,
-        subject: formData.subject,
-        message: formData.message,
-        from: formData.from,
+        title: formData.title.trim(),
+        body: formData.body.trim(),
       };
-
       if (scope === 'ward') {
         payload.wardId = wardId;
-        payload.wardName = wardName;
       }
-      payload.stakeName = stakeName;
 
-      const result = await emailAll(payload);
+      const result = await notifyMembers(payload);
 
-      if (result.data.success) {
-        setStatus((result.data.sent !== 1
-          ? trf('Successfully sent {0} emails!', [result.data.sent])
-          : trf('Successfully sent {0} email!', [result.data.sent]))
-          + (result.data.failed > 0 ? trf(' ({0} failed)', [result.data.failed]) : ''));
+      if (result.data?.success) {
+        const n = result.data.recipients ?? 0;
+        setStatus(n !== 1
+          ? trf('Notification sent to {0} members with the app installed.', [n])
+          : trf('Notification sent to {0} member with the app installed.', [n]));
         setTimeout(() => {
           onClose();
         }, 2500);
       } else {
-        setStatus(tr('Error sending emails. Please try again.'));
+        setStatus(tr('Error sending notification. Please try again.'));
       }
     } catch (error) {
-      console.error('Error sending emails:', error);
-      setStatus(trf('Error sending emails: {0}', [error.message]));
+      console.error('Error sending notification:', error);
+      setStatus(trf('Error sending notification: {0}', [error.message]));
     } finally {
       setSending(false);
     }
@@ -80,12 +74,11 @@ export default function EmailAllModal({ scope, stakeId, wardId, stakeName, wardN
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              {scope === 'stake' ? tr('Email All Stake Members') : tr('Email All Ward Members')}
+              {scope === 'stake' ? tr('Send Notification to Stake') : tr('Send Notification to Ward')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
               <Users className="w-4 h-4 inline mr-1" />
-              {trf('Sending to all members in {0}', [scopeLabel])}
-              {memberCount !== undefined && trf(' ({0} members with email)', [memberCount])}
+              {trf('In-app push to everyone in {0}', [scopeLabel])}
             </p>
           </div>
           <button
@@ -98,25 +91,16 @@ export default function EmailAllModal({ scope, stakeId, wardId, stakeName, wardN
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {/* From field */}
+          {/* Title field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('From')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Title')}</label>
             <input
               type="text"
-              value={formData.from}
-              onChange={(e) => setFormData(prev => ({ ...prev, from: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-            />
-          </div>
-
-          {/* Subject field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Subject')}</label>
-            <input
-              type="text"
-              value={formData.subject}
-              onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              maxLength={80}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={tr('e.g. Stake Conference this Sunday')}
             />
           </div>
 
@@ -124,27 +108,28 @@ export default function EmailAllModal({ scope, stakeId, wardId, stakeName, wardN
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{tr('Message')}</label>
             <textarea
-              value={formData.message}
-              onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              rows={8}
+              value={formData.body}
+              onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
+              rows={5}
+              maxLength={240}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-              placeholder={tr('Type your message here...')}
+              placeholder={tr('Type the notification message here...')}
             />
           </div>
 
-          {/* Warning */}
+          {/* Note */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-sm text-amber-800">
-              <strong>{tr('Note:')}</strong> {tr('This will send an email to every member with an email address')}
+              <strong>{tr('Note:')}</strong> {tr('This sends a push notification to every member with the app installed')}
               {scope === 'stake' ? tr(' across all wards in the stake') : trf(' in {0}', [wardName || tr('this ward')])}.{' '}
-              {tr('Please use this feature responsibly.')}
+              {tr("Members without the app won't receive it. Please use this responsibly.")}
             </p>
           </div>
 
           {/* Status message */}
           {status && (
             <div className={`p-3 rounded-lg ${
-              status.includes('Successfully')
+              status.includes('sent to')
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : status.includes('Error') || status.includes('Please')
                 ? 'bg-red-50 text-red-700 border border-red-200'
@@ -168,10 +153,10 @@ export default function EmailAllModal({ scope, stakeId, wardId, stakeName, wardN
             disabled={sending}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-4 h-4" />
+            <Bell className="w-4 h-4" />
             {sending
               ? tr('Sending...')
-              : (scope === 'stake' ? tr('Send to All Stake Members') : tr('Send to All Ward Members'))}
+              : (scope === 'stake' ? tr('Send to Stake') : tr('Send to Ward'))}
           </button>
         </div>
       </div>

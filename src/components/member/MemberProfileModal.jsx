@@ -1,7 +1,37 @@
 import React from 'react';
 import { X, Mail, Phone, MapPin, Calendar, Baby, Heart, Briefcase, GraduationCap, Book, Music, Palette, Mountain, Church, Star, Trophy, Globe } from 'lucide-react';
+import { tr, trf } from '../../i18n/translations';
 
-export default function MemberProfileModal({ member, onClose }) {
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const ordinalSuffix = (n) => {
+  const rem100 = n % 100;
+  if (rem100 >= 11 && rem100 <= 13) return 'th';
+  switch (n % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+};
+
+// Month/day only, no year — e.g. "June 28th". Used for non-admin viewers.
+const formatBirthdayNoYear = (dob) => {
+  if (!dob) return '';
+  const parts = String(dob).split('/');
+  if (parts.length < 2) return dob;
+  const month = parseInt(parts[0], 10);
+  const day = parseInt(parts[1], 10);
+  if (!month || !day || month < 1 || month > 12) return dob;
+  return `${tr(MONTH_NAMES[month - 1])} ${day}${tr(ordinalSuffix(day))}`;
+};
+
+// canSeeBirthYear: admins (ward/stake/super) see the full date + age.
+// Everyone else sees month/day only, since age reveals the birth year too.
+export default function MemberProfileModal({ member, onClose, canSeeBirthYear = false }) {
   const calculateAge = (dob) => {
     if (!dob) return null;
     const birthDate = new Date(dob);
@@ -39,8 +69,8 @@ export default function MemberProfileModal({ member, onClose }) {
                 className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-rose-100 flex items-center justify-center border-4 border-white shadow-lg">
-                <span className="text-4xl text-rose-400">{member.fullName?.[0] || '?'}</span>
+              <div className="w-32 h-32 rounded-full bg-primary-100 flex items-center justify-center border-4 border-white shadow-lg">
+                <span className="text-4xl text-primary-400">{member.fullName?.[0] || '?'}</span>
               </div>
             )}
             <div className="flex-1 pb-4">
@@ -53,8 +83,8 @@ export default function MemberProfileModal({ member, onClose }) {
 
           {/* About Me */}
           {member.aboutMe && (
-            <div className="mb-6 p-4 bg-rose-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">About Me</h3>
+            <div className="mb-6 p-4 bg-primary-50 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{tr('About Me')}</h3>
               <p className="text-gray-700 whitespace-pre-wrap">{member.aboutMe}</p>
             </div>
           )}
@@ -62,13 +92,13 @@ export default function MemberProfileModal({ member, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Contact Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Contact Information</h3>
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Contact Information')}</h3>
 
               {member.email && (
                 <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-rose-500 mt-0.5" />
+                  <Mail className="w-5 h-5 text-primary-500 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="text-sm text-gray-600">{tr('Email')}</p>
                     <p className="text-gray-800">{member.email}</p>
                   </div>
                 </div>
@@ -76,9 +106,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
               {member.phone && (
                 <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-rose-500 mt-0.5" />
+                  <Phone className="w-5 h-5 text-primary-500 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="text-sm text-gray-600">{tr('Phone')}</p>
                     <p className="text-gray-800">{member.phone}</p>
                   </div>
                 </div>
@@ -86,9 +116,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
               {member.address && (
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-rose-500 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-primary-500 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="text-sm text-gray-600">{tr('Address')}</p>
                     <p className="text-gray-800">{member.address}</p>
                   </div>
                 </div>
@@ -97,23 +127,27 @@ export default function MemberProfileModal({ member, onClose }) {
 
             {/* Personal Details */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Personal Details</h3>
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Personal Details')}</h3>
 
               {member.dob && (
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-rose-500 mt-0.5" />
+                  <Calendar className="w-5 h-5 text-primary-500 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Birthday</p>
-                    <p className="text-gray-800">{member.dob} {age && `(${age} years old)`}</p>
+                    <p className="text-sm text-gray-600">{tr('Birthday')}</p>
+                    <p className="text-gray-800">
+                      {canSeeBirthYear
+                        ? `${member.dob}${age ? ` ${trf('({0} years old)', age)}` : ''}`
+                        : formatBirthdayNoYear(member.dob)}
+                    </p>
                   </div>
                 </div>
               )}
 
               {member.anniversary && (
                 <div className="flex items-start gap-3">
-                  <Heart className="w-5 h-5 text-rose-500 mt-0.5 fill-current" />
+                  <Heart className="w-5 h-5 text-primary-500 mt-0.5 fill-current" />
                   <div>
-                    <p className="text-sm text-gray-600">Anniversary</p>
+                    <p className="text-sm text-gray-600">{tr('Anniversary')}</p>
                     <p className="text-gray-800">{member.anniversary}</p>
                   </div>
                 </div>
@@ -121,9 +155,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
               {member.ethnicity && (
                 <div className="flex items-start gap-3">
-                  <Globe className="w-5 h-5 text-rose-500 mt-0.5" />
+                  <Globe className="w-5 h-5 text-primary-500 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Cultural Background</p>
+                    <p className="text-sm text-gray-600">{tr('Cultural Background')}</p>
                     <p className="text-gray-800">{member.ethnicity}</p>
                   </div>
                 </div>
@@ -133,13 +167,13 @@ export default function MemberProfileModal({ member, onClose }) {
             {/* Family Information */}
             {(member.numChildren || member.childrenNames || member.spouseName) && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Family</h3>
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Family')}</h3>
 
                 {member.spouseName && (
                   <div className="flex items-start gap-3">
-                    <Heart className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Heart className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">Spouse</p>
+                      <p className="text-sm text-gray-600">{tr('Spouse')}</p>
                       <p className="text-gray-800">{member.spouseName}</p>
                     </div>
                   </div>
@@ -150,13 +184,13 @@ export default function MemberProfileModal({ member, onClose }) {
             {/* Professional & Education */}
             {(member.occupation || member.education || member.employer) && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Professional & Education</h3>
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Professional & Education')}</h3>
 
                 {member.occupation && (
                   <div className="flex items-start gap-3">
-                    <Briefcase className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Briefcase className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">Occupation</p>
+                      <p className="text-sm text-gray-600">{tr('Occupation')}</p>
                       <p className="text-gray-800">{member.occupation}</p>
                     </div>
                   </div>
@@ -164,9 +198,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                 {member.employer && (
                   <div className="flex items-start gap-3">
-                    <Briefcase className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Briefcase className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">Employer</p>
+                      <p className="text-sm text-gray-600">{tr('Employer')}</p>
                       <p className="text-gray-800">{member.employer}</p>
                     </div>
                   </div>
@@ -174,9 +208,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                 {member.education && (
                   <div className="flex items-start gap-3">
-                    <GraduationCap className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <GraduationCap className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">Education</p>
+                      <p className="text-sm text-gray-600">{tr('Education')}</p>
                       <p className="text-gray-800">{member.education}</p>
                     </div>
                   </div>
@@ -187,14 +221,14 @@ export default function MemberProfileModal({ member, onClose }) {
             {/* Hobbies & Interests */}
             {(member.hobbies || member.interests || member.talents || member.favoriteBooks || member.favoriteMusic) && (
               <div className="space-y-4 md:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Hobbies & Interests</h3>
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Hobbies & Interests')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {member.hobbies && (
                     <div className="flex items-start gap-3">
-                      <Mountain className="w-5 h-5 text-rose-500 mt-0.5" />
+                      <Mountain className="w-5 h-5 text-primary-500 mt-0.5" />
                       <div>
-                        <p className="text-sm text-gray-600">Hobbies</p>
+                        <p className="text-sm text-gray-600">{tr('Hobbies')}</p>
                         <p className="text-gray-800">{member.hobbies}</p>
                       </div>
                     </div>
@@ -202,9 +236,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                   {member.interests && (
                     <div className="flex items-start gap-3">
-                      <Star className="w-5 h-5 text-rose-500 mt-0.5" />
+                      <Star className="w-5 h-5 text-primary-500 mt-0.5" />
                       <div>
-                        <p className="text-sm text-gray-600">Interests</p>
+                        <p className="text-sm text-gray-600">{tr('Interests')}</p>
                         <p className="text-gray-800">{member.interests}</p>
                       </div>
                     </div>
@@ -212,9 +246,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                   {member.talents && (
                     <div className="flex items-start gap-3">
-                      <Trophy className="w-5 h-5 text-rose-500 mt-0.5" />
+                      <Trophy className="w-5 h-5 text-primary-500 mt-0.5" />
                       <div>
-                        <p className="text-sm text-gray-600">Talents</p>
+                        <p className="text-sm text-gray-600">{tr('Talents')}</p>
                         <p className="text-gray-800">{member.talents}</p>
                       </div>
                     </div>
@@ -222,9 +256,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                   {member.favoriteBooks && (
                     <div className="flex items-start gap-3">
-                      <Book className="w-5 h-5 text-rose-500 mt-0.5" />
+                      <Book className="w-5 h-5 text-primary-500 mt-0.5" />
                       <div>
-                        <p className="text-sm text-gray-600">Favorite Books</p>
+                        <p className="text-sm text-gray-600">{tr('Favorite Books')}</p>
                         <p className="text-gray-800">{member.favoriteBooks}</p>
                       </div>
                     </div>
@@ -232,9 +266,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                   {member.favoriteMusic && (
                     <div className="flex items-start gap-3">
-                      <Music className="w-5 h-5 text-rose-500 mt-0.5" />
+                      <Music className="w-5 h-5 text-primary-500 mt-0.5" />
                       <div>
-                        <p className="text-sm text-gray-600">Favorite Music</p>
+                        <p className="text-sm text-gray-600">{tr('Favorite Music')}</p>
                         <p className="text-gray-800">{member.favoriteMusic}</p>
                       </div>
                     </div>
@@ -246,13 +280,13 @@ export default function MemberProfileModal({ member, onClose }) {
             {/* Spiritual Journey */}
             {(member.spiritualJourney || member.favoriteScripture || member.testimony || member.callings) && (
               <div className="space-y-4 md:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Spiritual Journey</h3>
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Spiritual Journey')}</h3>
 
                 {member.spiritualJourney && (
                   <div className="flex items-start gap-3">
-                    <Church className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Church className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">My Spiritual Journey</p>
+                      <p className="text-sm text-gray-600 mb-1">{tr('My Spiritual Journey')}</p>
                       <p className="text-gray-800 whitespace-pre-wrap">{member.spiritualJourney}</p>
                     </div>
                   </div>
@@ -260,9 +294,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                 {member.favoriteScripture && (
                   <div className="flex items-start gap-3">
-                    <Book className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Book className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">Favorite Scripture</p>
+                      <p className="text-sm text-gray-600 mb-1">{tr('Favorite Scripture')}</p>
                       <p className="text-gray-800 italic whitespace-pre-wrap">{member.favoriteScripture}</p>
                     </div>
                   </div>
@@ -270,9 +304,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                 {member.testimony && (
                   <div className="flex items-start gap-3">
-                    <Heart className="w-5 h-5 text-rose-500 mt-0.5 fill-current" />
+                    <Heart className="w-5 h-5 text-primary-500 mt-0.5 fill-current" />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">Testimony</p>
+                      <p className="text-sm text-gray-600 mb-1">{tr('Testimony')}</p>
                       <p className="text-gray-800 whitespace-pre-wrap">{member.testimony}</p>
                     </div>
                   </div>
@@ -280,9 +314,9 @@ export default function MemberProfileModal({ member, onClose }) {
 
                 {member.callings && (
                   <div className="flex items-start gap-3">
-                    <Church className="w-5 h-5 text-rose-500 mt-0.5" />
+                    <Church className="w-5 h-5 text-primary-500 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">Current Callings</p>
+                      <p className="text-sm text-gray-600">{tr('Current Callings')}</p>
                       <p className="text-gray-800">{member.callings}</p>
                     </div>
                   </div>
@@ -293,26 +327,26 @@ export default function MemberProfileModal({ member, onClose }) {
             {/* Goals & Aspirations */}
             {(member.personalGoals || member.familyGoals || member.spiritualGoals) && (
               <div className="space-y-4 md:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Goals & Aspirations</h3>
+                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">{tr('Goals & Aspirations')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {member.personalGoals && (
                     <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm font-medium text-blue-800 mb-2">Personal Goals</p>
+                      <p className="text-sm font-medium text-blue-800 mb-2">{tr('Personal Goals')}</p>
                       <p className="text-gray-700 text-sm whitespace-pre-wrap">{member.personalGoals}</p>
                     </div>
                   )}
 
                   {member.familyGoals && (
                     <div className="p-4 bg-amber-50 rounded-lg">
-                      <p className="text-sm font-medium text-amber-800 mb-2">Family Goals</p>
+                      <p className="text-sm font-medium text-amber-800 mb-2">{tr('Family Goals')}</p>
                       <p className="text-gray-700 text-sm whitespace-pre-wrap">{member.familyGoals}</p>
                     </div>
                   )}
 
                   {member.spiritualGoals && (
-                    <div className="p-4 bg-rose-50 rounded-lg">
-                      <p className="text-sm font-medium text-rose-800 mb-2">Spiritual Goals</p>
+                    <div className="p-4 bg-primary-50 rounded-lg">
+                      <p className="text-sm font-medium text-primary-800 mb-2">{tr('Spiritual Goals')}</p>
                       <p className="text-gray-700 text-sm whitespace-pre-wrap">{member.spiritualGoals}</p>
                     </div>
                   )}

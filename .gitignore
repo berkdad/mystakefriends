@@ -69,6 +69,14 @@ ehthumbs.db
 # Design files
 *.psd
 
+# Local data / member PII — never commit
+EldersRoster.xlsx
+~$*.xlsx
+silver-mesa-elders-backup.json
+
+# Local Claude Code settings
+.claude/settings.local.json
+
 # TEMPORARY: functions source is ignored only because it currently holds
 # hardcoded AWS SES credentials. Once those are moved to Firebase secrets,
 # DELETE the line below so your backend is version-controlled again.

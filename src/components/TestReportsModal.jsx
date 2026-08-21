@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { tr, trf } from '../i18n/translations';
 
 export default function TestReportsModal({ stakes, onClose }) {
   const [reportType, setReportType] = useState('stake'); // 'stake' or 'ward'
@@ -15,12 +16,12 @@ export default function TestReportsModal({ stakes, onClose }) {
 
   const handleSendReport = async () => {
     if (!selectedStakeId) {
-      setError('Please select a stake');
+      setError(tr('Please select a stake'));
       return;
     }
 
     if (reportType === 'ward' && !selectedWardId) {
-      setError('Please select a ward');
+      setError(tr('Please select a ward'));
       return;
     }
 
@@ -32,18 +33,18 @@ export default function TestReportsModal({ stakes, onClose }) {
       if (reportType === 'stake') {
         const sendTestStakeReport = httpsCallable(functions, 'sendTestStakeReport');
         const result = await sendTestStakeReport({ stakeId: selectedStakeId });
-        setSuccess(`✅ Stake report sent to berkdad@gmail.com! Check your inbox.`);
+        setSuccess(trf('✅ Stake report sent to {0}! Check your inbox.', ['berkdad@gmail.com']));
       } else {
         const sendTestWardReport = httpsCallable(functions, 'sendTestWardReport');
         const result = await sendTestWardReport({
           stakeId: selectedStakeId,
           wardId: selectedWardId
         });
-        setSuccess(`✅ Ward report sent to berkdad@gmail.com! Check your inbox.`);
+        setSuccess(trf('✅ Ward report sent to {0}! Check your inbox.', ['berkdad@gmail.com']));
       }
     } catch (err) {
       console.error('Error sending test report:', err);
-      setError(`Failed to send report: ${err.message}`);
+      setError(trf('Failed to send report: {0}', [err.message]));
     } finally {
       setLoading(false);
     }
@@ -52,10 +53,10 @@ export default function TestReportsModal({ stakes, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-rose-500 to-amber-500 p-6 flex items-center justify-between">
+        <div className="sticky top-0 bg-gradient-to-r from-primary-500 to-accent-500 p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Mail className="w-6 h-6 text-white" />
-            <h2 className="text-2xl font-bold text-white">Test Weekly Reports</h2>
+            <h2 className="text-2xl font-bold text-white">{tr('Test Weekly Reports')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -72,7 +73,7 @@ export default function TestReportsModal({ stakes, onClose }) {
               <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{success}</p>
-                <p className="text-sm mt-1">The report was sent with the subject: "My Stake Friends - Weekly Report (TEST PREVIEW)"</p>
+                <p className="text-sm mt-1">{tr('The report was sent with the subject: "My Stake Friends - Weekly Report (TEST PREVIEW)"')}</p>
               </div>
             </div>
           )}
@@ -88,7 +89,7 @@ export default function TestReportsModal({ stakes, onClose }) {
           {/* Report Type Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Report Type
+              {tr('Report Type')}
             </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -102,9 +103,9 @@ export default function TestReportsModal({ stakes, onClose }) {
                     setError('');
                     setSuccess('');
                   }}
-                  className="text-rose-500 focus:ring-rose-500"
+                  className="text-primary-500 focus:ring-primary-500"
                 />
-                <span className="text-gray-700">Stake Report (All Wards)</span>
+                <span className="text-gray-700">{tr('Stake Report (All Wards)')}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -116,9 +117,9 @@ export default function TestReportsModal({ stakes, onClose }) {
                     setError('');
                     setSuccess('');
                   }}
-                  className="text-rose-500 focus:ring-rose-500"
+                  className="text-primary-500 focus:ring-primary-500"
                 />
-                <span className="text-gray-700">Ward Report (Single Ward)</span>
+                <span className="text-gray-700">{tr('Ward Report (Single Ward)')}</span>
               </label>
             </div>
           </div>
@@ -126,7 +127,7 @@ export default function TestReportsModal({ stakes, onClose }) {
           {/* Stake Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Stake *
+              {tr('Select Stake *')}
             </label>
             <select
               value={selectedStakeId}
@@ -136,9 +137,9 @@ export default function TestReportsModal({ stakes, onClose }) {
                 setError('');
                 setSuccess('');
               }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="">-- Select a Stake --</option>
+              <option value="">{tr('-- Select a Stake --')}</option>
               {stakes.map(stake => (
                 <option key={stake.id} value={stake.id}>
                   {stake.name}
@@ -151,7 +152,7 @@ export default function TestReportsModal({ stakes, onClose }) {
           {reportType === 'ward' && selectedStake && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Ward *
+                {tr('Select Ward *')}
               </label>
               <select
                 value={selectedWardId}
@@ -160,9 +161,9 @@ export default function TestReportsModal({ stakes, onClose }) {
                   setError('');
                   setSuccess('');
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">-- Select a Ward --</option>
+                <option value="">{tr('-- Select a Ward --')}</option>
                 {(selectedStake.wards || []).map(ward => (
                   <option key={ward.id} value={ward.id}>
                     {ward.name}
@@ -175,10 +176,10 @@ export default function TestReportsModal({ stakes, onClose }) {
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>📧 Test Email:</strong> The report will be sent to <strong>berkdad@gmail.com</strong>
+              <strong>{tr('📧 Test Email:')}</strong> {tr('The report will be sent to')} <strong>berkdad@gmail.com</strong>
             </p>
             <p className="text-sm text-blue-700 mt-2">
-              This generates a report for the past week (last Sunday through Saturday) with all statistics and week-over-week comparisons.
+              {tr('This generates a report for the past week (last Sunday through Saturday) with all statistics and week-over-week comparisons.')}
             </p>
           </div>
 
@@ -187,17 +188,17 @@ export default function TestReportsModal({ stakes, onClose }) {
             <button
               onClick={handleSendReport}
               disabled={loading || !selectedStakeId || (reportType === 'ward' && !selectedWardId)}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white rounded-lg hover:from-rose-600 hover:to-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg hover:from-primary-600 hover:to-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Sending Report...
+                  {tr('Sending Report...')}
                 </>
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  Send Test Report
+                  {tr('Send Test Report')}
                 </>
               )}
             </button>
@@ -205,7 +206,7 @@ export default function TestReportsModal({ stakes, onClose }) {
               onClick={onClose}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
-              Close
+              {tr('Close')}
             </button>
           </div>
         </div>
