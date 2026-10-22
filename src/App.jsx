@@ -4,7 +4,7 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendP
 import { getFirestore, doc, getDoc, collection, addDoc, query, getDocs, updateDoc, deleteDoc, where, writeBatch, getCountFromServer } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { Heart, Users, Building2, LogOut, Plus, Edit2, Trash2, UserPlus, Target, FileText, Mail, Phone, MapPin, Calendar, User, Baby, Globe, Upload, Download, Filter, Send, Camera, ArrowRightLeft, Bell, Megaphone, ChevronDown, Wrench } from 'lucide-react';
+import { Heart, Users, Building2, LogOut, Plus, Edit2, Trash2, UserPlus, Target, FileText, Mail, Phone, MapPin, Calendar, User, Baby, Globe, Upload, Download, Filter, Send, Camera, ArrowRightLeft, Bell, BellOff, Megaphone, ChevronDown, Wrench } from 'lucide-react';
 import TransferMemberModal from './components/member/TransferMemberModal';
 import * as XLSX from 'xlsx';
 import CircleManager from './components/circles/CircleManager';
@@ -21,6 +21,7 @@ import TestReportsModal from './components/TestReportsModal';
 import SetupPassword from './components/SetupPassword';
 import { tr, trf, setCurrentLanguage } from './i18n/translations';
 import { LanguageContext, LanguageToggle } from './i18n/LanguageContext';
+import { attachNotificationStatus, describeNotifications, formatNotifDate } from './utils/notificationStatus';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -741,7 +742,7 @@ function StakeAdminDashboard({ user, userData, onSwitchToMember }) {
           });
         });
       }
-      setMembers(allMembers);
+      setMembers(await attachNotificationStatus(db, userData.stakeId, allMembers));
 
       // Count all circles from all wards
       let circleCount = 0;
@@ -1481,12 +1482,12 @@ function WardAdminDashboard({ user, userData, onSwitchToMember }) {
         collection(db, 'stakes', userData.stakeId, 'wards', userData.wardId, 'members')
       );
       const membersSnapshot = await getDocs(membersQuery);
-      setMembers(membersSnapshot.docs.map(doc => ({
+      setMembers(await attachNotificationStatus(db, userData.stakeId, membersSnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id,
         wardId: userData.wardId,
         wardName: wardData?.name
-      })));
+      }))));
 
       // Load circles count
       const circlesQuery = query(
@@ -2358,6 +2359,7 @@ function UploadRosterModal({ stakeId, wardId, onClose, onComplete }) {
 // Friends Tab Component
 function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDeleteMember, onInviteMember, onInviteAll, onTransfer, showWardColumn = false }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [notifFilter, setNotifFilter] = useState('all');
 
   const filteredMembers = members
     .filter(member =>
@@ -2365,9 +2367,11 @@ function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDele
       member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.wardName?.toLowerCase().includes(searchTerm.toLowerCase())
     )
+    .filter(member => notifFilter === 'all' || (member.hasLoggedIn && member.notif?.code === notifFilter))
     .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
 
   const uninvitedCount = members.filter(m => m.email && m.email.trim() !== '' && !m.hasLoggedIn).length;
+  const notifOffCount = members.filter(m => m.hasLoggedIn && m.notif?.code === 'off').length;
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-primary-100">
@@ -2402,13 +2406,38 @@ function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDele
             </button>
           </div>
         </div>
-        <input
-          type="text"
-          placeholder={tr('Search members...')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
+        <div className="flex flex-col md:flex-row gap-3">
+          <input
+            type="text"
+            placeholder={tr('Search members...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <select
+            value={notifFilter}
+            onChange={(e) => setNotifFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+            title={tr('Filter by notification status')}
+          >
+            <option value="all">{tr('Notifications: All members')}</option>
+            <option value="off">{tr('Notifications off')}</option>
+            <option value="not_asked">{tr('Notifications not turned on yet')}</option>
+            <option value="on">{tr('Notifications on')}</option>
+            <option value="no_report">{tr('No notification report')}</option>
+          </select>
+        </div>
+        {notifOffCount > 0 && notifFilter !== 'off' && (
+          <button
+            onClick={() => setNotifFilter('off')}
+            className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm hover:bg-red-100 transition-colors"
+          >
+            <BellOff className="w-4 h-4" />
+            {notifOffCount === 1
+              ? tr('1 member has notifications turned off. Show them')
+              : trf('{0} members have notifications turned off. Show them', [notifOffCount])}
+          </button>
+        )}
       </div>
 
       <div className="p-6">
@@ -2444,6 +2473,30 @@ function FriendsTab({ members, onAddMember, onUploadRoster, onEditMember, onDele
         )}
       </div>
     </div>
+  );
+}
+
+// Bell badge on a member card; hover (or long-press on tablets) shows
+// per-device detail from the mobile app's permission reports.
+function NotificationBadge({ summary }) {
+  const styles = {
+    on: { cls: 'bg-green-100 text-green-700', label: tr('Notifications on'), Icon: Bell },
+    off: { cls: 'bg-red-100 text-red-700', label: tr('Notifications off'), Icon: BellOff },
+    not_asked: { cls: 'bg-amber-100 text-amber-700', label: tr('Notifications not turned on'), Icon: Bell },
+    no_report: { cls: 'bg-gray-100 text-gray-500', label: tr('No notification report'), Icon: Bell },
+  };
+  const s = styles[summary.code] || styles.no_report;
+  const since = summary.code === 'off' && summary.offSince
+    ? ' ' + trf('since {0}', [formatNotifDate(summary.offSince)])
+    : '';
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full ${s.cls}`}
+      title={describeNotifications(summary)}
+    >
+      <s.Icon className="w-3 h-3" />
+      {s.label}{since}
+    </span>
   );
 }
 
@@ -2504,6 +2557,7 @@ function MemberCard({ member, showWard, onEdit, onDelete, onInvite, onTransfer }
                       {tr('Pending')}
                     </span>
                   )}
+                  {member.hasLoggedIn && member.notif && <NotificationBadge summary={member.notif} />}
                   {showWard && member.wardName && (
                     <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                       {member.wardName}
