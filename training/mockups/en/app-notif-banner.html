@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Stake Friends – Notifications</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#e5e7eb;font-family:'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:44px 0;-webkit-font-smoothing:antialiased}
+.device{position:relative;flex:none;width:390px;height:844px;border-radius:40px;overflow:hidden;background:#fff;box-shadow:0 0 0 11px #111827,0 0 0 13px #4b5563,0 28px 60px rgba(0,0,0,.35)}
+.ic{display:block;flex:none}
+.statusbar{position:absolute;top:0;left:0;right:0;height:47px;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:2px 24px 0 36px;color:#000;pointer-events:none}
+.statusbar .time{font-size:16px;font-weight:600;letter-spacing:.2px}
+.statusbar .sys{display:flex;align-items:center;gap:6px}
+.island{position:absolute;top:11px;left:50%;margin-left:-62px;width:124px;height:34px;border-radius:18px;background:#000;z-index:61}
+.home-ind{position:absolute;bottom:8px;left:50%;margin-left:-67px;width:134px;height:5px;border-radius:3px;background:#000;z-index:60}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+.grad{background:linear-gradient(to bottom right,#FEF2F2,#FEF3C7,#F0FDF4)}
+.scaffold-bg{background:#FEF2F2}
+.appbar{flex:none;background:#fff;padding-top:47px;position:relative;z-index:5}
+.toolbar{height:56px;display:flex;align-items:center}
+.lead{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.ttl{flex:1;min-width:0;padding-left:16px;display:flex;flex-direction:column;justify-content:center}
+.lead + .ttl{padding-left:16px}
+.t1{font-size:20px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{font-size:12px;color:rgba(0,0,0,.54);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;flex:none}
+.ibtn{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08)}
+.lt{display:flex;align-items:center;min-height:72px;padding:8px 24px 8px 16px;gap:16px}
+.lt-main{flex:1;min-width:0}
+.lt-title{font-size:16px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-sub{font-size:14px;color:#1f1f1f;line-height:1.43}
+.lt-sub.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-trail{flex:none;font-size:12px;color:rgba(0,0,0,.54)}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500}
+.chip{display:inline-flex;align-items:center;height:36px;padding:0 20px;border-radius:16px;border:1px solid #000;background:rgba(251,191,36,.3);font-size:14px;font-weight:500;color:rgba(0,0,0,.87);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:12px 24px;border-radius:8px;background:#f472b6;color:#fff;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.obtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 22px;border-radius:8px;border:2px solid #f472b6;color:#f472b6;background:transparent;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;color:#f472b6;font-size:14px;font-weight:500;line-height:20px;border-radius:20px;white-space:nowrap}
+.fit{display:inline-block;white-space:nowrap;transform-origin:center center}
+
+.dpad{padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;row-gap:16px}
+.cell{aspect-ratio:1/1;padding:8px 16px}
+.tile{height:100%;background:#fff;border-radius:16px;border:2px solid;box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.tl{width:100%;display:flex;justify-content:center}
+.tt{font-size:16px;font-weight:700;color:rgba(0,0,0,.87);line-height:1.3}
+.ts{font-size:12px;color:rgba(0,0,0,.54);line-height:1.35}
+.sec{margin-top:24px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;min-height:40px}
+.sec-t{font-size:18px;font-weight:700;color:rgba(0,0,0,.87)}
+.list{margin-top:12px}
+.list .card{margin-bottom:8px}
+.banner{flex:none;margin:12px 12px 0;padding:12px 6px 12px 14px;background:#FFF8E1;border:1px solid #FFCA28;border-radius:12px;display:flex;align-items:flex-start}
+.banner .bt{flex:1;min-width:0;margin-left:12px}
+.banner .b1{font-size:14px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.43}
+.banner .b2{margin-top:4px;font-size:12px;color:rgba(0,0,0,.54);line-height:1.35}
+.banner .btn{margin-top:8px}
+.banner .x{width:48px;height:40px;display:flex;align-items:center;justify-content:center;color:#1f1f1f;flex:none;margin-top:-8px}
+</style>
+</head>
+<body>
+<div class="device">
+<div class="screen">
+<div class="appbar"><div class="toolbar"><div class="ttl"><div class="t1">My Circle</div><div class="t2">Sunrise Circle</div></div><div class="actions"><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm5.03 1.71L11 9.53v4.94l-1.97-1.18-.48-.29H4v-2h4.55l.48-.29zM15.5 12c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div></div></div></div>
+<div class="screen-body grad" style="flex:1;min-height:0;display:flex;flex-direction:column">
+<div class="banner"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="#FF8F00" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm0-15.5c2.49 0 4 2.02 4 4.5v.1l2 2V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68c-.24.06-.47.15-.69.23l1.64 1.64c.18-.02.36-.05.55-.05zM5.41 3.35L4 4.76l2.81 2.81C6.29 8.57 6 9.74 6 11v5l-2 2v1h14.24l1.74 1.74 1.41-1.41L5.41 3.35zM16 17H8v-6c0-.68.12-1.32.34-1.9L16 16.76V17z"/></svg><div class="bt"><div class="b1">Notifications are turned off on this device</div><div class="b2">You won&#x27;t hear about new messages and activities from your circle.</div><div class="b2">Tap Open Settings, then Notifications, then turn on Allow Notifications.</div><div class="btn"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.09-.16-.26-.25-.44-.25-.06 0-.12.01-.17.03l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.06-.02-.12-.03-.18-.03-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.09.16.26.25.44.25.06 0 .12-.01.17-.03l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.06.02.12.03.18.03.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zm-1.98-1.71c.04.31.05.52.05.73 0 .21-.02.43-.05.73l-.14 1.13.89.7 1.08.84-.7 1.21-1.27-.51-1.04-.42-.9.68c-.43.32-.84.56-1.25.73l-1.06.43-.16 1.13-.2 1.35h-1.4l-.19-1.35-.16-1.13-1.06-.43c-.43-.18-.83-.41-1.23-.71l-.91-.7-1.06.43-1.27.51-.7-1.21 1.08-.84.89-.7-.14-1.13c-.03-.31-.05-.54-.05-.74s.02-.43.05-.73l.14-1.13-.89-.7-1.08-.84.7-1.21 1.27.51 1.04.42.9-.68c.43-.32.84-.56 1.25-.73l1.06-.43.16-1.13.2-1.35h1.39l.19 1.35.16 1.13 1.06.43c.43.18.83.41 1.23.71l.91.7 1.06-.43 1.27-.51.7 1.21-1.07.85-.89.7.14 1.13zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>Open Settings</div></div><div class="x"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div></div>
+<div class="body"><div class="dpad">
+<div class="grid"><div class="cell"><div class="tile" style="border-color:rgba(244,114,182,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">My Circle</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">8 members, 1 visitor</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(59,130,246,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#3b82f6" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Chat</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">3 recent</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(34,197,94,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#22c55e" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Activities</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">2 upcoming</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(251,191,36,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#fbbf24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">My Profile</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">Edit info</span></div></div></div></div>
+<div class="sec"><div class="sec-h"><div class="sec-t">Recent Chats</div><div class="tbtn">View All</div></div>
+<div class="list"><div class="card"><div class="lt"><div class="av" style="background:rgba(59,130,246,.2);color:#3b82f6">J</div><div class="lt-main"><div class="lt-title">Jessica</div><div class="lt-sub one">I&#x27;ll bring dessert 😊</div></div><div class="lt-trail">2m ago</div></div></div><div class="card"><div class="lt"><div class="av" style="background:rgba(59,130,246,.2);color:#3b82f6">E</div><div class="lt-main"><div class="lt-title">Emily</div><div class="lt-sub one">See everyone Thursday at 7!</div></div><div class="lt-trail">12m ago</div></div></div></div></div>
+<div class="sec"><div class="sec-h"><div class="sec-t">Upcoming Activities</div><div class="tbtn">View All</div></div>
+<div class="list"><div class="card"><div class="lt"><div class="av" style="background:rgba(244,114,182,.2)"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M12 6c1.11 0 2-.9 2-2 0-.38-.1-.73-.29-1.03L12 0l-1.71 2.97c-.19.3-.29.65-.29 1.03 0 1.1.9 2 2 2zm4.6 9.99l-1.07-1.07-1.08 1.07c-1.3 1.3-3.58 1.31-4.89 0l-1.07-1.07-1.09 1.07C6.75 16.64 5.88 17 4.96 17c-.73 0-1.4-.23-1.96-.61V21c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-4.61c-.56.38-1.23.61-1.96.61-.92 0-1.79-.36-2.44-1.01zM18 9h-5V7h-2v2H6c-1.66 0-3 1.34-3 3v1.54c0 1.08.88 1.96 1.96 1.96.52 0 1.02-.2 1.38-.57l2.14-2.13 2.13 2.13c.74.74 2.03.74 2.77 0l2.14-2.13 2.13 2.13c.37.37.86.57 1.38.57 1.08 0 1.96-.88 1.96-1.96V12C21 10.34 19.66 9 18 9z"/></svg></div><div class="lt-main"><div class="lt-title">🎂 Emily&#x27;s Birthday</div><div class="lt-sub one">Today</div></div><div class="chip">Today</div></div></div><div class="card"><div class="lt"><div class="av" style="background:rgba(34,197,94,.2)"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="#22c55e" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div class="lt-main"><div class="lt-title">Game Night</div><div class="lt-sub one">10/9/2026</div></div></div></div></div></div>
+</div></div>
+</div>
+</div>
+<div class="statusbar"><span class="time">9:41</span><span class="sys"><svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.3-1.3C13.4 1.6 10.8.5 8 .5S2.6 1.6.7 3.4L2 4.7c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.3-1.3C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.8l1.3 1.3c.9-.8 2.1-1.3 3.4-1.3zM8 9.4c-.5 0-1 .2-1.4.6L8 11.5l1.4-1.5c-.4-.4-.9-.6-1.4-.6z"/></svg><svg width="27" height="13" viewBox="0 0 27 13" fill="currentColor" aria-hidden="true"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2"/><path d="M24 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" opacity=".4"/></svg></span></div><div class="island"></div>
+<div class="home-ind"></div>
+</div>
+<script>document.querySelectorAll('.fit').forEach(function(el){var avail=el.parentElement.clientWidth;var w=el.scrollWidth;if(w>avail){el.style.transform='scale('+(avail/w).toFixed(3)+')';}});if(location.hash==='#scrolled'){var b=document.querySelector('.body');if(b){b.scrollTop=b.scrollHeight;}}</script>
+</body>
+</html>

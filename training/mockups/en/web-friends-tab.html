@@ -1,0 +1,248 @@
+<script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Theme tokens: female (default) = rose/amber/green, male = blue/slate/sky.
+      // The active palette is chosen by setting data-theme="male" on <html> (see applyGenderTheme in App.jsx).
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: 'var(--c-primary-50)', 100: 'var(--c-primary-100)', 200: 'var(--c-primary-200)',
+                300: 'var(--c-primary-300)', 400: 'var(--c-primary-400)', 500: 'var(--c-primary-500)',
+                600: 'var(--c-primary-600)', 700: 'var(--c-primary-700)', 800: 'var(--c-primary-800)',
+                900: 'var(--c-primary-900)'
+              },
+              accent: {
+                50: 'var(--c-accent-50)', 100: 'var(--c-accent-100)', 200: 'var(--c-accent-200)',
+                300: 'var(--c-accent-300)', 400: 'var(--c-accent-400)', 500: 'var(--c-accent-500)',
+                600: 'var(--c-accent-600)', 700: 'var(--c-accent-700)', 800: 'var(--c-accent-800)',
+                900: 'var(--c-accent-900)'
+              },
+              tertiary: {
+                50: 'var(--c-tertiary-50)', 100: 'var(--c-tertiary-100)', 200: 'var(--c-tertiary-200)',
+                300: 'var(--c-tertiary-300)', 400: 'var(--c-tertiary-400)', 500: 'var(--c-tertiary-500)',
+                600: 'var(--c-tertiary-600)', 700: 'var(--c-tertiary-700)', 800: 'var(--c-tertiary-800)',
+                900: 'var(--c-tertiary-900)'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      /* Female palette (default): rose / amber / green */
+      :root {
+        --c-primary-50:#fff1f2; --c-primary-100:#ffe4e6; --c-primary-200:#fecdd3; --c-primary-300:#fda4af;
+        --c-primary-400:#fb7185; --c-primary-500:#f43f5e; --c-primary-600:#e11d48; --c-primary-700:#be123c;
+        --c-primary-800:#9f1239; --c-primary-900:#881337;
+        --c-accent-50:#fffbeb; --c-accent-100:#fef3c7; --c-accent-200:#fde68a; --c-accent-300:#fcd34d;
+        --c-accent-400:#fbbf24; --c-accent-500:#f59e0b; --c-accent-600:#d97706; --c-accent-700:#b45309;
+        --c-accent-800:#92400e; --c-accent-900:#78350f;
+        --c-tertiary-50:#f0fdf4; --c-tertiary-100:#dcfce7; --c-tertiary-200:#bbf7d0; --c-tertiary-300:#86efac;
+        --c-tertiary-400:#4ade80; --c-tertiary-500:#22c55e; --c-tertiary-600:#16a34a; --c-tertiary-700:#15803d;
+        --c-tertiary-800:#166534; --c-tertiary-900:#14532d;
+      }
+      /* Male palette: blue / slate / sky */
+      [data-theme="male"] {
+        --c-primary-50:#eff6ff; --c-primary-100:#dbeafe; --c-primary-200:#bfdbfe; --c-primary-300:#93c5fd;
+        --c-primary-400:#60a5fa; --c-primary-500:#3b82f6; --c-primary-600:#2563eb; --c-primary-700:#1d4ed8;
+        --c-primary-800:#1e40af; --c-primary-900:#1e3a8a;
+        --c-accent-50:#f8fafc; --c-accent-100:#f1f5f9; --c-accent-200:#e2e8f0; --c-accent-300:#cbd5e1;
+        --c-accent-400:#94a3b8; --c-accent-500:#64748b; --c-accent-600:#475569; --c-accent-700:#334155;
+        --c-accent-800:#1e293b; --c-accent-900:#0f172a;
+        --c-tertiary-50:#f0f9ff; --c-tertiary-100:#e0f2fe; --c-tertiary-200:#bae6fd; --c-tertiary-300:#7dd3fc;
+        --c-tertiary-400:#38bdf8; --c-tertiary-500:#0ea5e9; --c-tertiary-600:#0284c7; --c-tertiary-700:#0369a1;
+        --c-tertiary-800:#075985; --c-tertiary-900:#0c4a6e;
+      }
+    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Stake Friends</title>
+<style>body{width:1280px;margin:0}</style>
+<body lang="en">
+<div id="root">
+<div class="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-tertiary-50">
+<header class="bg-white shadow-sm border-b border-primary-100">
+<div class="max-w-7xl mx-auto px-8 py-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart w-8 h-8 text-primary-500"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+<div>
+<h1 class="text-2xl font-bold text-gray-800">My Stake Friends</h1>
+<p class="text-sm text-gray-500">Demo Stake</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="inline-flex items-center gap-1 border border-gray-200 rounded-full p-1 bg-white" title="Language"><button class="px-3 py-1 text-sm rounded-full transition-colors bg-primary-500 text-white font-medium" aria-pressed="true">English</button><button class="px-3 py-1 text-sm rounded-full transition-colors text-gray-600 hover:bg-gray-100" aria-pressed="false">Espa&#241;ol</button></div>
+<div class="flex items-center gap-3">
+<label class="text-sm font-medium text-gray-700">View Ward:</label>
+<select class="text-sm font-medium text-gray-800 border border-gray-300 focus:ring-2 focus:ring-primary-500 rounded px-3 py-2">
+<option value="all">All Wards</option>
+<option value="demo-ward" selected>Demo Ward</option>
+</select>
+</div>
+<div class="relative">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+Actions
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down w-4 h-4 transition-transform"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-8 py-8">
+<div class="grid grid-cols-4 gap-6 mb-8"><button class="p-6 rounded-xl shadow-md border-2 transition-all bg-primary-500 border-primary-600 text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users w-12 h-12 mx-auto mb-3 text-white"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><h3 class="text-xl font-semibold mb-1">Friends</h3><p class="text-sm text-primary-100">24 members</p></button><button class="p-6 rounded-xl shadow-md border-2 transition-all bg-white border-green-100 text-gray-800 hover:border-green-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-target w-12 h-12 mx-auto mb-3 text-green-500"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg><h3 class="text-xl font-semibold mb-1">Circles</h3><p class="text-sm text-gray-600">3 active circles</p></button><button class="p-6 rounded-xl shadow-md border-2 transition-all bg-white border-amber-100 text-gray-800 hover:border-amber-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-12 h-12 mx-auto mb-3 text-amber-500"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg><h3 class="text-xl font-semibold mb-1">Reports</h3><p class="text-sm text-gray-600">View analytics</p></button><button class="p-6 rounded-xl shadow-md border-2 transition-all bg-white border-blue-100 text-gray-800 hover:border-blue-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart w-12 h-12 mx-auto mb-3 text-blue-500"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg><h3 class="text-xl font-semibold mb-1">Drop In</h3><p class="text-sm text-gray-600">Visit a circle</p></button></div>
+<div class="bg-white rounded-xl shadow-md border border-primary-100">
+<div class="p-6 border-b border-gray-200">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-semibold text-gray-800">Members</h2>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>Invite All (5)</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>Upload Roster</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus w-4 h-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>Add Member</button>
+</div>
+</div>
+<div class="flex flex-row gap-3">
+<input type="text" placeholder="Search members..." value="" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+<select class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" title="Filter by notification status"><option value="all" selected>Notifications: All members</option><option value="off">Notifications off</option><option value="not_asked">Notifications not turned on yet</option><option value="on">Notifications on</option><option value="no_report">No notification report</option></select>
+</div>
+<button class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-sm hover:bg-red-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-off w-4 h-4"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path><path d="m2 2 20 20"></path></svg>2 members have notifications turned off. Show them</button>
+</div>
+<div class="p-6">
+<div class="grid grid-cols-3 gap-4">
+<div class="border rounded-lg p-4 transition-all border-gray-200 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Anderson, Emily</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Active</span><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700" title="iPhone/iPad: on (checked 10/20/2026)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell w-3 h-3"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>Notifications on</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">emily.a@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2001</span></div>
+</div>
+</div>
+<div class="border rounded-lg p-4 transition-all border-gray-200 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Baker, Sarah</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Send invitation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">sarah.b@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2002</span></div>
+</div>
+</div>
+<div class="border rounded-lg p-4 transition-all border-gray-200 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Clark, Jessica</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Active</span><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700" title="iPhone/iPad: off since 10/14/2026 (checked 10/19/2026)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-off w-3 h-3"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path><path d="m2 2 20 20"></path></svg>Notifications off since 10/14/2026</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">jessica.c@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2003</span></div>
+</div>
+</div>
+<div class="border rounded-lg p-4 transition-all border-gray-200 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Davis, Amanda</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Active</span><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500" title="No notification report yet. It appears after the member opens app version 1.1.33 or newer."><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell w-3 h-3"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>No notification report</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">amanda.d@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2004</span></div>
+</div>
+</div>
+<div class="border rounded-lg p-4 transition-all bg-purple-50 border-purple-300 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Garcia, Sofia</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Active</span><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700" title="iPhone/iPad: on (checked 10/20/2026)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell w-3 h-3"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>Notifications on</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">sofia.g@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2010</span></div>
+</div>
+</div>
+<div class="border rounded-lg p-4 transition-all bg-blue-50 border-blue-300 hover:shadow-md">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-start gap-3 flex-1">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-6 h-6 text-primary-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-gray-800 mb-1">Hall, Jacob</h3>
+<div class="flex gap-2 flex-wrap"><span class="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex gap-1"><button class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Send invitation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button><button class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg></button><button class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></button></div>
+<button class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Transfer to another ward"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left w-4 h-4"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+</div>
+</div>
+<div class="space-y-1 text-sm text-gray-600">
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail w-3.5 h-3.5"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><span class="truncate">jacob.h@example.com</span></div>
+<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-3.5 h-3.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>(555) 010-2009</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+</div>
+</div>
+</body>

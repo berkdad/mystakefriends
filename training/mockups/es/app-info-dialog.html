@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Stake Friends – Versión</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#e5e7eb;font-family:'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:44px 0;-webkit-font-smoothing:antialiased}
+.device{position:relative;flex:none;width:390px;height:844px;border-radius:40px;overflow:hidden;background:#fff;box-shadow:0 0 0 11px #111827,0 0 0 13px #4b5563,0 28px 60px rgba(0,0,0,.35)}
+.ic{display:block;flex:none}
+.statusbar{position:absolute;top:0;left:0;right:0;height:47px;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:2px 24px 0 36px;color:#000;pointer-events:none}
+.statusbar .time{font-size:16px;font-weight:600;letter-spacing:.2px}
+.statusbar .sys{display:flex;align-items:center;gap:6px}
+.island{position:absolute;top:11px;left:50%;margin-left:-62px;width:124px;height:34px;border-radius:18px;background:#000;z-index:61}
+.home-ind{position:absolute;bottom:8px;left:50%;margin-left:-67px;width:134px;height:5px;border-radius:3px;background:#000;z-index:60}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+.grad{background:linear-gradient(to bottom right,#FEF2F2,#FEF3C7,#F0FDF4)}
+.scaffold-bg{background:#FEF2F2}
+.appbar{flex:none;background:#fff;padding-top:47px;position:relative;z-index:5}
+.toolbar{height:56px;display:flex;align-items:center}
+.lead{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.ttl{flex:1;min-width:0;padding-left:16px;display:flex;flex-direction:column;justify-content:center}
+.lead + .ttl{padding-left:16px}
+.t1{font-size:20px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{font-size:12px;color:rgba(0,0,0,.54);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;flex:none}
+.ibtn{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08)}
+.lt{display:flex;align-items:center;min-height:72px;padding:8px 24px 8px 16px;gap:16px}
+.lt-main{flex:1;min-width:0}
+.lt-title{font-size:16px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-sub{font-size:14px;color:#1f1f1f;line-height:1.43}
+.lt-sub.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-trail{flex:none;font-size:12px;color:rgba(0,0,0,.54)}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500}
+.chip{display:inline-flex;align-items:center;height:36px;padding:0 20px;border-radius:16px;border:1px solid #000;background:rgba(251,191,36,.3);font-size:14px;font-weight:500;color:rgba(0,0,0,.87);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:12px 24px;border-radius:8px;background:#f472b6;color:#fff;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.obtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 22px;border-radius:8px;border:2px solid #f472b6;color:#f472b6;background:transparent;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;color:#f472b6;font-size:14px;font-weight:500;line-height:20px;border-radius:20px;white-space:nowrap}
+.fit{display:inline-block;white-space:nowrap;transform-origin:center center}
+
+.dpad{padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;row-gap:16px}
+.cell{aspect-ratio:1/1;padding:8px 16px}
+.tile{height:100%;background:#fff;border-radius:16px;border:2px solid;box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.tl{width:100%;display:flex;justify-content:center}
+.tt{font-size:16px;font-weight:700;color:rgba(0,0,0,.87);line-height:1.3}
+.ts{font-size:12px;color:rgba(0,0,0,.54);line-height:1.35}
+.sec{margin-top:24px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;min-height:40px}
+.sec-t{font-size:18px;font-weight:700;color:rgba(0,0,0,.87)}
+.list{margin-top:12px}
+.list .card{margin-bottom:8px}
+.banner{flex:none;margin:12px 12px 0;padding:12px 6px 12px 14px;background:#FFF8E1;border:1px solid #FFCA28;border-radius:12px;display:flex;align-items:flex-start}
+.banner .bt{flex:1;min-width:0;margin-left:12px}
+.banner .b1{font-size:14px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.43}
+.banner .b2{margin-top:4px;font-size:12px;color:rgba(0,0,0,.54);line-height:1.35}
+.banner .btn{margin-top:8px}
+.banner .x{width:48px;height:40px;display:flex;align-items:center;justify-content:center;color:#1f1f1f;flex:none;margin-top:-8px}
+
+.barrier{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.54);z-index:20;display:flex;align-items:center;justify-content:center}
+.dialog{width:310px;background:#fff;border-radius:28px;box-shadow:0 11px 15px -7px rgba(0,0,0,.2),0 24px 38px 3px rgba(0,0,0,.14),0 9px 46px 8px rgba(0,0,0,.12);padding:24px 24px 24px}
+.dtitle{display:flex;align-items:center;gap:12px;font-size:24px;line-height:1.33;color:#000;white-space:nowrap}
+.dcontent{margin-top:16px;font-size:14px;color:#1f1f1f;line-height:1.43}
+.dver{font-size:16px;color:rgba(0,0,0,.87);line-height:1.5}
+.dtag{margin-top:16px;font-style:italic;color:#9E9E9E}
+.dlabel{font-weight:600}
+.langs{display:flex;gap:8px;margin-top:8px}
+.langs > div{flex:1;padding-left:8px;padding-right:8px}
+.nrow{display:flex;align-items:center;gap:8px;margin-top:6px;color:#388E3C;font-weight:600}
+.dactions{display:flex;justify-content:flex-end;margin-top:24px;margin-right:-8px}
+</style>
+</head>
+<body>
+<div class="device">
+<div class="screen">
+<div class="appbar"><div class="toolbar"><div class="ttl"><div class="t1">Mi Círculo</div><div class="t2">Círculo Amanecer</div></div><div class="actions"><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm5.03 1.71L11 9.53v4.94l-1.97-1.18-.48-.29H4v-2h4.55l.48-.29zM15.5 12c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div><div class="ibtn"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div></div></div></div>
+<div class="screen-body grad" style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+<div class="body"><div class="dpad">
+<div class="grid"><div class="cell"><div class="tile" style="border-color:rgba(244,114,182,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Mi Círculo</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">8 miembros, 1 visitante</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(59,130,246,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#3b82f6" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Chat</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">3 recientes</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(34,197,94,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#22c55e" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Actividades</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">2 próximos</span></div></div></div><div class="cell"><div class="tile" style="border-color:rgba(251,191,36,.3)"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="#fbbf24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><div class="tl" style="margin-top:8px"><span class="fit tt">Mi Perfil</span></div><div class="tl" style="margin-top:2px"><span class="fit ts">Editar información</span></div></div></div></div>
+<div class="sec"><div class="sec-h"><div class="sec-t">Chats Recientes</div><div class="tbtn">Ver Todo</div></div>
+<div class="list"><div class="card"><div class="lt"><div class="av" style="background:rgba(59,130,246,.2);color:#3b82f6">J</div><div class="lt-main"><div class="lt-title">Jessica</div><div class="lt-sub one">Yo llevo el postre 😊</div></div><div class="lt-trail">hace 2 min</div></div></div><div class="card"><div class="lt"><div class="av" style="background:rgba(59,130,246,.2);color:#3b82f6">E</div><div class="lt-main"><div class="lt-title">Emily</div><div class="lt-sub one">¡Nos vemos todas el jueves a las 7!</div></div><div class="lt-trail">hace 12 min</div></div></div></div></div>
+<div class="sec"><div class="sec-h"><div class="sec-t">Próximas Actividades</div><div class="tbtn">Ver Todo</div></div>
+<div class="list"><div class="card"><div class="lt"><div class="av" style="background:rgba(244,114,182,.2)"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M12 6c1.11 0 2-.9 2-2 0-.38-.1-.73-.29-1.03L12 0l-1.71 2.97c-.19.3-.29.65-.29 1.03 0 1.1.9 2 2 2zm4.6 9.99l-1.07-1.07-1.08 1.07c-1.3 1.3-3.58 1.31-4.89 0l-1.07-1.07-1.09 1.07C6.75 16.64 5.88 17 4.96 17c-.73 0-1.4-.23-1.96-.61V21c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-4.61c-.56.38-1.23.61-1.96.61-.92 0-1.79-.36-2.44-1.01zM18 9h-5V7h-2v2H6c-1.66 0-3 1.34-3 3v1.54c0 1.08.88 1.96 1.96 1.96.52 0 1.02-.2 1.38-.57l2.14-2.13 2.13 2.13c.74.74 2.03.74 2.77 0l2.14-2.13 2.13 2.13c.37.37.86.57 1.38.57 1.08 0 1.96-.88 1.96-1.96V12C21 10.34 19.66 9 18 9z"/></svg></div><div class="lt-main"><div class="lt-title">🎂 Cumpleaños de Emily</div><div class="lt-sub one">Hoy</div></div><div class="chip">Hoy</div></div></div><div class="card"><div class="lt"><div class="av" style="background:rgba(34,197,94,.2)"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="#22c55e" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div class="lt-main"><div class="lt-title">Noche de Juegos</div><div class="lt-sub one">10/9/2026</div></div></div></div></div></div>
+</div></div>
+</div>
+</div><div class="barrier"><div class="dialog" role="dialog">
+<div class="dtitle"><svg class="ic" width="40" height="40" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>My Stake Friends</span></div>
+<div class="dcontent">
+<div class="dver">Versión 1.1.34 (34)</div>
+<div class="dtag">Corazones Unidos en Unidad</div>
+<div class="dlabel" style="margin-top:24px">Idioma</div>
+<div class="langs"><div class="obtn">English</div><div class="btn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Español</div></div>
+<div class="dlabel" style="margin-top:20px">Notificaciones</div>
+<div class="nrow"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="#388E3C" aria-hidden="true"><path d="M18 16v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6zm-4 5c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zM7.58 4.08L6.15 2.65C3.75 4.48 2.17 7.3 2.03 10.5h2c.15-2.65 1.51-4.97 3.55-6.42zm12.39 6.42h2c-.15-3.2-1.73-6.02-4.12-7.85l-1.42 1.43c2.02 1.45 3.39 3.77 3.54 6.42z"/></svg><span>Activadas</span></div>
+<div class="obtn" style="display:flex;width:100%;margin-top:24px"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>Contactar al Desarrollador</div>
+</div>
+<div class="dactions"><div class="tbtn">Cerrar</div></div>
+</div></div>
+<div class="statusbar"><span class="time">9:41</span><span class="sys"><svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.3-1.3C13.4 1.6 10.8.5 8 .5S2.6 1.6.7 3.4L2 4.7c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.3-1.3C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.8l1.3 1.3c.9-.8 2.1-1.3 3.4-1.3zM8 9.4c-.5 0-1 .2-1.4.6L8 11.5l1.4-1.5c-.4-.4-.9-.6-1.4-.6z"/></svg><svg width="27" height="13" viewBox="0 0 27 13" fill="currentColor" aria-hidden="true"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2"/><path d="M24 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" opacity=".4"/></svg></span></div><div class="island"></div>
+<div class="home-ind"></div>
+</div>
+<script>document.querySelectorAll('.fit').forEach(function(el){var avail=el.parentElement.clientWidth;var w=el.scrollWidth;if(w>avail){el.style.transform='scale('+(avail/w).toFixed(3)+')';}});if(location.hash==='#scrolled'){var b=document.querySelector('.body');if(b){b.scrollTop=b.scrollHeight;}}</script>
+</body>
+</html>

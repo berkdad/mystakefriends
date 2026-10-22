@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Stake Friends – Iniciar Sesión</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#e5e7eb;font-family:'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:44px 0;-webkit-font-smoothing:antialiased}
+.device{position:relative;flex:none;width:390px;height:844px;border-radius:40px;overflow:hidden;background:#fff;box-shadow:0 0 0 11px #111827,0 0 0 13px #4b5563,0 28px 60px rgba(0,0,0,.35)}
+.ic{display:block;flex:none}
+.statusbar{position:absolute;top:0;left:0;right:0;height:47px;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:2px 24px 0 36px;color:#000;pointer-events:none}
+.statusbar .time{font-size:16px;font-weight:600;letter-spacing:.2px}
+.statusbar .sys{display:flex;align-items:center;gap:6px}
+.island{position:absolute;top:11px;left:50%;margin-left:-62px;width:124px;height:34px;border-radius:18px;background:#000;z-index:61}
+.home-ind{position:absolute;bottom:8px;left:50%;margin-left:-67px;width:134px;height:5px;border-radius:3px;background:#000;z-index:60}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+.grad{background:linear-gradient(to bottom right,#FEF2F2,#FEF3C7,#F0FDF4)}
+.scaffold-bg{background:#FEF2F2}
+.appbar{flex:none;background:#fff;padding-top:47px;position:relative;z-index:5}
+.toolbar{height:56px;display:flex;align-items:center}
+.lead{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.ttl{flex:1;min-width:0;padding-left:16px;display:flex;flex-direction:column;justify-content:center}
+.lead + .ttl{padding-left:16px}
+.t1{font-size:20px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{font-size:12px;color:rgba(0,0,0,.54);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;flex:none}
+.ibtn{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.87)}
+.body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08)}
+.lt{display:flex;align-items:center;min-height:72px;padding:8px 24px 8px 16px;gap:16px}
+.lt-main{flex:1;min-width:0}
+.lt-title{font-size:16px;font-weight:600;color:rgba(0,0,0,.87);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-sub{font-size:14px;color:#1f1f1f;line-height:1.43}
+.lt-sub.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-trail{flex:none;font-size:12px;color:rgba(0,0,0,.54)}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500}
+.chip{display:inline-flex;align-items:center;height:36px;padding:0 20px;border-radius:16px;border:1px solid #000;background:rgba(251,191,36,.3);font-size:14px;font-weight:500;color:rgba(0,0,0,.87);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:12px 24px;border-radius:8px;background:#f472b6;color:#fff;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.obtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 22px;border-radius:8px;border:2px solid #f472b6;color:#f472b6;background:transparent;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;color:#f472b6;font-size:14px;font-weight:500;line-height:20px;border-radius:20px;white-space:nowrap}
+.fit{display:inline-block;white-space:nowrap;transform-origin:center center}
+
+.login{flex:1;display:flex;align-items:center;justify-content:center;padding:47px 0 34px}
+.lwrap{width:100%;padding:24px}
+.lcard{margin:8px 16px;background:#fff;border-radius:16px;border:1px solid rgba(244,114,182,.3);box-shadow:0 5px 5px -3px rgba(0,0,0,.2),0 8px 10px 1px rgba(0,0,0,.14),0 3px 14px 2px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.lt1{margin-top:16px;font-size:28px;font-weight:700;color:rgba(0,0,0,.87);line-height:1.2}
+.ltag{margin-top:8px;font-size:16px;font-style:italic;color:#757575;line-height:1.4}
+.field{width:100%;height:52px;display:flex;align-items:center;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:#1f1f1f;text-align:left}
+.field .pre{width:48px;display:flex;justify-content:center}
+.field .lbl{flex:1;font-size:16px;color:#1f1f1f}
+.field .suf{width:48px;display:flex;justify-content:center}
+.signin{width:100%;height:48px;font-size:16px;font-weight:600;margin-top:24px}
+.linfo{margin-top:16px;font-size:12px;color:rgba(0,0,0,.54);line-height:1.35}
+</style>
+</head>
+<body>
+<div class="device">
+<div class="screen grad"><div class="login"><div class="lwrap"><div class="lcard">
+<svg class="ic" width="64" height="64" viewBox="0 0 24 24" fill="#f472b6" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+<div class="lt1">My Stake Friends</div>
+<div class="ltag">&quot;Corazones Unidos en Unidad&quot;</div>
+<div class="field" style="margin-top:32px"><div class="pre"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg></div><div class="lbl">Correo Electrónico</div></div>
+<div class="field" style="margin-top:16px"><div class="pre"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H8.9V6zM18 20H6V10h12v10z"/></svg></div><div class="lbl">Contraseña</div><div class="suf"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 5c1.38 0 2.5 1.12 2.5 2.5S13.38 14 12 14s-2.5-1.12-2.5-2.5S10.62 9 12 9m0-2c-2.48 0-4.5 2.02-4.5 4.5S9.52 16 12 16s4.5-2.02 4.5-4.5S14.48 7 12 7z"/></svg></div></div>
+<div class="btn signin">Iniciar Sesión</div>
+<div class="tbtn" style="margin-top:8px">¿Olvidaste tu contraseña?</div>
+<div class="linfo">¿Aún no tienes una cuenta?<br />Pide una invitación al administrador de tu barrio.</div>
+</div></div></div></div>
+<div class="statusbar"><span class="time">9:41</span><span class="sys"><svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.3-1.3C13.4 1.6 10.8.5 8 .5S2.6 1.6.7 3.4L2 4.7c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.3-1.3C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.8l1.3 1.3c.9-.8 2.1-1.3 3.4-1.3zM8 9.4c-.5 0-1 .2-1.4.6L8 11.5l1.4-1.5c-.4-.4-.9-.6-1.4-.6z"/></svg><svg width="27" height="13" viewBox="0 0 27 13" fill="currentColor" aria-hidden="true"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2"/><path d="M24 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" opacity=".4"/></svg></span></div><div class="island"></div>
+<div class="home-ind"></div>
+</div>
+<script>document.querySelectorAll('.fit').forEach(function(el){var avail=el.parentElement.clientWidth;var w=el.scrollWidth;if(w>avail){el.style.transform='scale('+(avail/w).toFixed(3)+')';}});if(location.hash==='#scrolled'){var b=document.querySelector('.body');if(b){b.scrollTop=b.scrollHeight;}}</script>
+</body>
+</html>
